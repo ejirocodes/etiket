@@ -83,13 +83,14 @@
     "fmt": "oxfmt .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "docs:dev": "npx mdzilla ./docs",
     "bumpp": "bumpp package.json",
     "release": "pnpm build && pnpm bumpp",
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260316.1",
     "bumpp": "latest",
     "changelogen": "latest",
     "citty": "^0.2.1",
