@@ -4,7 +4,7 @@
  * and Application Identifier (AI) based data structure
  */
 
-import { InvalidInputError } from '../errors'
+import { InvalidInputError } from "../errors";
 
 // Code 128 encoding patterns (bar/space widths)
 // Each pattern is 6 elements: bar, space, bar, space, bar, space
@@ -115,17 +115,17 @@ const PATTERNS: number[][] = [
   [2, 1, 1, 4, 1, 2], // 103 (START_A)
   [2, 1, 1, 2, 1, 4], // 104 (START_B)
   [2, 1, 1, 2, 3, 2], // 105 (START_C)
-]
+];
 
-const STOP_PATTERN = [2, 3, 3, 1, 1, 1, 2] // 7 elements
+const STOP_PATTERN = [2, 3, 3, 1, 1, 1, 2]; // 7 elements
 
-const START_A = 103
-const START_B = 104
-const START_C = 105
-const CODE_A = 101
-const CODE_B = 100
-const CODE_C = 99
-const FNC1 = 102
+const START_A = 103;
+const START_B = 104;
+const START_C = 105;
+const CODE_A = 101;
+const CODE_B = 100;
+const CODE_C = 99;
+const FNC1 = 102;
 
 /**
  * Application Identifier definitions
@@ -133,46 +133,66 @@ const FNC1 = 102
  */
 interface AIDefinition {
   /** AI code string */
-  ai: string
+  ai: string;
   /** Fixed data length (excluding AI), or 0 if variable */
-  fixedLength: number
+  fixedLength: number;
   /** Maximum data length for variable-length AIs */
-  maxLength: number
+  maxLength: number;
   /** Regex pattern for validating the data portion */
-  dataPattern: RegExp
+  dataPattern: RegExp;
 }
 
 const AI_DEFINITIONS: AIDefinition[] = [
-  { ai: '01', fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
-  { ai: '02', fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
-  { ai: '10', fixedLength: 0, maxLength: 20, dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/ },
-  { ai: '11', fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: '13', fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: '15', fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: '17', fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  { ai: '20', fixedLength: 2, maxLength: 2, dataPattern: /^\d{2}$/ },
-  { ai: '21', fixedLength: 0, maxLength: 20, dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/ },
-  { ai: '30', fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
-  { ai: '37', fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
-  { ai: '400', fixedLength: 0, maxLength: 30, dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,30}$/ },
-  { ai: '410', fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
-  { ai: '414', fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
-  { ai: '421', fixedLength: 0, maxLength: 12, dataPattern: /^\d{3}[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{0,9}$/ },
-]
+  { ai: "01", fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
+  { ai: "02", fixedLength: 14, maxLength: 14, dataPattern: /^\d{14}$/ },
+  {
+    ai: "10",
+    fixedLength: 0,
+    maxLength: 20,
+    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/,
+  },
+  { ai: "11", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
+  { ai: "13", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
+  { ai: "15", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
+  { ai: "17", fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
+  { ai: "20", fixedLength: 2, maxLength: 2, dataPattern: /^\d{2}$/ },
+  {
+    ai: "21",
+    fixedLength: 0,
+    maxLength: 20,
+    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,20}$/,
+  },
+  { ai: "30", fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
+  { ai: "37", fixedLength: 0, maxLength: 8, dataPattern: /^\d{1,8}$/ },
+  {
+    ai: "400",
+    fixedLength: 0,
+    maxLength: 30,
+    dataPattern: /^[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{1,30}$/,
+  },
+  { ai: "410", fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
+  { ai: "414", fixedLength: 13, maxLength: 13, dataPattern: /^\d{13}$/ },
+  {
+    ai: "421",
+    fixedLength: 0,
+    maxLength: 12,
+    dataPattern: /^\d{3}[\x21-\x22\x25-\x2F\x30-\x39\x41-\x5A\x5F\x61-\x7A]{0,9}$/,
+  },
+];
 
 // Build AI definitions for 310x and 320x (x = 0-9, decimal indicator)
 for (let x = 0; x <= 9; x++) {
   AI_DEFINITIONS.push(
     { ai: `310${x}`, fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
     { ai: `320${x}`, fixedLength: 6, maxLength: 6, dataPattern: /^\d{6}$/ },
-  )
+  );
 }
 
 /**
  * Find the AI definition matching a given AI code
  */
 function findAIDefinition(ai: string): AIDefinition | undefined {
-  return AI_DEFINITIONS.find(def => def.ai === ai)
+  return AI_DEFINITIONS.find((def) => def.ai === ai);
 }
 
 /**
@@ -180,98 +200,84 @@ function findAIDefinition(ai: string): AIDefinition | undefined {
  * E.g. "(01)12345678901234(17)260101(10)ABC123"
  */
 function parseAIString(text: string): { ai: string; data: string }[] {
-  const fields: { ai: string; data: string }[] = []
-  let pos = 0
+  const fields: { ai: string; data: string }[] = [];
+  let pos = 0;
 
   while (pos < text.length) {
-    if (text[pos] !== '(') {
-      throw new InvalidInputError(
-        `Expected '(' at position ${pos} in GS1-128 AI string`,
-      )
+    if (text[pos] !== "(") {
+      throw new InvalidInputError(`Expected '(' at position ${pos} in GS1-128 AI string`);
     }
 
-    const closePos = text.indexOf(')', pos + 1)
+    const closePos = text.indexOf(")", pos + 1);
     if (closePos === -1) {
-      throw new InvalidInputError(
-        `Missing closing ')' for AI starting at position ${pos}`,
-      )
+      throw new InvalidInputError(`Missing closing ')' for AI starting at position ${pos}`);
     }
 
-    const ai = text.slice(pos + 1, closePos)
+    const ai = text.slice(pos + 1, closePos);
     if (ai.length < 2 || ai.length > 4) {
-      throw new InvalidInputError(
-        `Invalid AI '${ai}' — must be 2-4 digits`,
-      )
+      throw new InvalidInputError(`Invalid AI '${ai}' — must be 2-4 digits`);
     }
     if (!/^\d+$/.test(ai)) {
-      throw new InvalidInputError(
-        `Invalid AI '${ai}' — must contain only digits`,
-      )
+      throw new InvalidInputError(`Invalid AI '${ai}' — must contain only digits`);
     }
 
     // Find where data ends (at the next '(' or end of string)
-    const dataStart = closePos + 1
-    let dataEnd = text.indexOf('(', dataStart)
+    const dataStart = closePos + 1;
+    let dataEnd = text.indexOf("(", dataStart);
     if (dataEnd === -1) {
-      dataEnd = text.length
+      dataEnd = text.length;
     }
 
-    const data = text.slice(dataStart, dataEnd)
+    const data = text.slice(dataStart, dataEnd);
     if (data.length === 0) {
-      throw new InvalidInputError(
-        `Empty data for AI '${ai}'`,
-      )
+      throw new InvalidInputError(`Empty data for AI '${ai}'`);
     }
 
-    fields.push({ ai, data })
-    pos = dataEnd
+    fields.push({ ai, data });
+    pos = dataEnd;
   }
 
   if (fields.length === 0) {
-    throw new InvalidInputError('GS1-128 AI string contains no fields')
+    throw new InvalidInputError("GS1-128 AI string contains no fields");
   }
 
-  return fields
+  return fields;
 }
 
 /**
  * Check if an AI field is variable-length
  */
 function isVariableLength(ai: string): boolean {
-  const def = findAIDefinition(ai)
+  const def = findAIDefinition(ai);
   if (def) {
-    return def.fixedLength === 0
+    return def.fixedLength === 0;
   }
   // Unknown AIs are treated as variable-length for safety
-  return true
+  return true;
 }
 
 /**
  * Validate AI data against known definitions
  */
 function validateAIField(ai: string, data: string): void {
-  const def = findAIDefinition(ai)
+  const def = findAIDefinition(ai);
   if (!def) {
     // Unknown AI — allow but don't validate content
-    return
+    return;
   }
 
   if (def.fixedLength > 0 && data.length !== def.fixedLength) {
     throw new InvalidInputError(
       `AI '${ai}' requires exactly ${def.fixedLength} characters, got ${data.length}`,
-    )
+    );
   }
 
   if (data.length > def.maxLength) {
-    throw new InvalidInputError(
-      `AI '${ai}' data exceeds maximum length of ${def.maxLength}`,
-    )
+    throw new InvalidInputError(`AI '${ai}' data exceeds maximum length of ${def.maxLength}`);
   }
 
   if (!def.dataPattern.test(data)) {
-    throw new InvalidInputError(
-      `AI '${ai}' data '${data}' does not match expected format`,
-    )
+    throw new InvalidInputError(`AI '${ai}' data '${data}' does not match expected format`);
   }
 }
 
@@ -279,13 +285,13 @@ function validateAIField(ai: string, data: string): void {
  * Count leading numeric characters from a position
  */
 function countNumericFromPos(text: string, pos: number): number {
-  let count = 0
+  let count = 0;
   while (pos + count < text.length) {
-    const c = text.charCodeAt(pos + count)
-    if (c < 48 || c > 57) break
-    count++
+    const c = text.charCodeAt(pos + count);
+    if (c < 48 || c > 57) break;
+    count++;
   }
-  return count
+  return count;
 }
 
 /**
@@ -293,13 +299,13 @@ function countNumericFromPos(text: string, pos: number): number {
  */
 function encodeCodeC(text: string, pos: number, codes: number[]): number {
   while (pos + 1 < text.length) {
-    const d1 = text.charCodeAt(pos) - 48
-    const d2 = text.charCodeAt(pos + 1) - 48
-    if (d1 < 0 || d1 > 9 || d2 < 0 || d2 > 9) break
-    codes.push(d1 * 10 + d2)
-    pos += 2
+    const d1 = text.charCodeAt(pos) - 48;
+    const d2 = text.charCodeAt(pos + 1) - 48;
+    if (d1 < 0 || d1 > 9 || d2 < 0 || d2 > 9) break;
+    codes.push(d1 * 10 + d2);
+    pos += 2;
   }
-  return pos
+  return pos;
 }
 
 /**
@@ -307,74 +313,74 @@ function encodeCodeC(text: string, pos: number, codes: number[]): number {
  * FNC1 is represented as \xF1 (241) in the internal string
  */
 function buildCodes(data: string): number[] {
-  const codes: number[] = []
-  let pos = 0
+  const codes: number[] = [];
+  let pos = 0;
 
   // Determine optimal start code
   // Check for FNC1 at position 0 — skip it for start code analysis
-  let analyzePos = 0
-  if (analyzePos < data.length && data.charCodeAt(analyzePos) === 0xF1) {
-    analyzePos++
+  let analyzePos = 0;
+  if (analyzePos < data.length && data.charCodeAt(analyzePos) === 0xf1) {
+    analyzePos++;
   }
 
-  const numericRun = countNumericFromPos(data, analyzePos)
+  const numericRun = countNumericFromPos(data, analyzePos);
 
   if (numericRun >= 4) {
-    codes.push(START_C)
+    codes.push(START_C);
   } else {
-    codes.push(START_B)
+    codes.push(START_B);
   }
 
-  let currentSet: 'A' | 'B' | 'C' = codes[0] === START_C ? 'C' : 'B'
+  let currentSet: "A" | "B" | "C" = codes[0] === START_C ? "C" : "B";
 
   while (pos < data.length) {
     // Handle FNC1 marker
-    if (data.charCodeAt(pos) === 0xF1) {
-      codes.push(FNC1)
-      pos++
-      continue
+    if (data.charCodeAt(pos) === 0xf1) {
+      codes.push(FNC1);
+      pos++;
+      continue;
     }
 
-    if (currentSet === 'C') {
-      const remaining = countNumericFromPos(data, pos)
+    if (currentSet === "C") {
+      const remaining = countNumericFromPos(data, pos);
       if (remaining >= 2) {
-        pos = encodeCodeC(data, pos, codes)
+        pos = encodeCodeC(data, pos, codes);
       } else {
-        codes.push(CODE_B)
-        currentSet = 'B'
+        codes.push(CODE_B);
+        currentSet = "B";
       }
     } else {
-      const numRun = countNumericFromPos(data, pos)
+      const numRun = countNumericFromPos(data, pos);
       if (numRun >= 4 || (numRun >= 2 && pos + numRun >= data.length)) {
-        codes.push(CODE_C)
-        currentSet = 'C'
-        pos = encodeCodeC(data, pos, codes)
+        codes.push(CODE_C);
+        currentSet = "C";
+        pos = encodeCodeC(data, pos, codes);
       } else {
-        const charCode = data.charCodeAt(pos)
+        const charCode = data.charCodeAt(pos);
         if (charCode >= 32 && charCode <= 126) {
           // Code B
-          codes.push(charCode - 32)
+          codes.push(charCode - 32);
         } else if (charCode >= 0 && charCode < 32) {
           // Need Code A for control chars
-          if (currentSet !== 'A') {
-            codes.push(CODE_A)
-            currentSet = 'A'
+          if (currentSet !== "A") {
+            codes.push(CODE_A);
+            currentSet = "A";
           }
-          codes.push(charCode + 64)
+          codes.push(charCode + 64);
         }
-        pos++
+        pos++;
       }
     }
   }
 
   // Calculate checksum
-  let checksum = codes[0]!
+  let checksum = codes[0]!;
   for (let i = 1; i < codes.length; i++) {
-    checksum += codes[i]! * i
+    checksum += codes[i]! * i;
   }
-  codes.push(checksum % 103)
+  codes.push(checksum % 103);
 
-  return codes
+  return codes;
 }
 
 /**
@@ -389,58 +395,58 @@ function buildCodes(data: string): number[] {
  */
 export function encodeGS1128(text: string): number[] {
   if (text.length === 0) {
-    throw new InvalidInputError('GS1-128 input must not be empty')
+    throw new InvalidInputError("GS1-128 input must not be empty");
   }
 
   // Build the internal data string with FNC1 markers
-  let data: string
+  let data: string;
 
-  if (text.startsWith('(')) {
+  if (text.startsWith("(")) {
     // Parenthesized AI format — parse and validate
-    const fields = parseAIString(text)
+    const fields = parseAIString(text);
 
     // Validate each field
     for (const field of fields) {
-      validateAIField(field.ai, field.data)
+      validateAIField(field.ai, field.data);
     }
 
     // Build data string: FNC1 + AI1 + data1 [+ FNC1 + AI2 + data2 ...]
     // FNC1 separators are needed after variable-length fields (except the last field)
-    let result = '\xF1' // Leading FNC1 (GS1-128 identifier)
+    let result = "\xF1"; // Leading FNC1 (GS1-128 identifier)
 
     for (let i = 0; i < fields.length; i++) {
-      const field = fields[i]!
-      result += field.ai + field.data
+      const field = fields[i]!;
+      result += field.ai + field.data;
 
       // Insert FNC1 separator after variable-length AIs, except the last field
       if (i < fields.length - 1 && isVariableLength(field.ai)) {
-        result += '\xF1'
+        result += "\xF1";
       }
     }
 
-    data = result
+    data = result;
   } else {
     // Plain string — just prepend FNC1
-    data = '\xF1' + text
+    data = "\xF1" + text;
   }
 
   // Build Code 128 symbol values
-  const codes = buildCodes(data)
+  const codes = buildCodes(data);
 
   // Convert to bar widths
-  const bars: number[] = []
+  const bars: number[] = [];
 
   for (const code of codes) {
-    const pattern = PATTERNS[code]!
+    const pattern = PATTERNS[code]!;
     for (const width of pattern) {
-      bars.push(width)
+      bars.push(width);
     }
   }
 
   // Stop pattern
   for (const width of STOP_PATTERN) {
-    bars.push(width)
+    bars.push(width);
   }
 
-  return bars
+  return bars;
 }

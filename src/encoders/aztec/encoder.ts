@@ -8,7 +8,7 @@
  * latch (permanent) and shift (single character) transitions as needed.
  */
 
-import { InvalidInputError } from '../../errors'
+import { InvalidInputError } from "../../errors";
 import {
   Mode,
   MODE_BITS,
@@ -17,7 +17,7 @@ import {
   getLatchSequence,
   SHIFT_TO_PUNCT,
   BINARY_SHIFT,
-} from './tables'
+} from "./tables";
 
 // ---------------------------------------------------------------------------
 // Bit manipulation helpers
@@ -26,7 +26,7 @@ import {
 /** Append a value as `count` bits (MSB first) to a bit array */
 function pushBits(bits: number[], value: number, count: number): void {
   for (let i = count - 1; i >= 0; i--) {
-    bits.push((value >> i) & 1)
+    bits.push((value >> i) & 1);
   }
 }
 
@@ -39,15 +39,15 @@ function pushBits(bits: number[], value: number, count: number): void {
  * Returns an array of { mode, value } options.
  */
 function charModes(char: string): Array<{ mode: Mode; value: number }> {
-  const result: Array<{ mode: Mode; value: number }> = []
+  const result: Array<{ mode: Mode; value: number }> = [];
   for (let m = 0; m <= 4; m++) {
-    const table = CHAR_TABLE[m]!
-    const val = table[char]
+    const table = CHAR_TABLE[m]!;
+    const val = table[char];
     if (val !== undefined) {
-      result.push({ mode: m as Mode, value: val })
+      result.push({ mode: m as Mode, value: val });
     }
   }
-  return result
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,120 +68,120 @@ function charModes(char: string): Array<{ mode: Mode; value: number }> {
  */
 export function encodeHighLevel(text: string): number[] {
   if (text.length === 0) {
-    return []
+    return [];
   }
 
-  const bits: number[] = []
-  let currentMode = Mode.Upper
-  let i = 0
+  const bits: number[] = [];
+  let currentMode = Mode.Upper;
+  let i = 0;
 
   while (i < text.length) {
-    const char = text[i]!
-    const charCode = text.charCodeAt(i)
+    const char = text[i]!;
+    const charCode = text.charCodeAt(i);
 
     // --- Check for two-character punctuation pairs ---
     if (i + 1 < text.length) {
-      const pair = text[i]! + text[i + 1]!
-      const punctPairVal = PUNCT_PAIRS.get(pair)
+      const pair = text[i]! + text[i + 1]!;
+      const punctPairVal = PUNCT_PAIRS.get(pair);
       if (punctPairVal !== undefined) {
         if (currentMode === Mode.Punct) {
-          pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct])
+          pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct]);
         } else {
           // Shift to Punct for the pair
-          const shiftCode = SHIFT_TO_PUNCT[currentMode]
+          const shiftCode = SHIFT_TO_PUNCT[currentMode];
           if (shiftCode !== undefined) {
-            pushBits(bits, shiftCode, MODE_BITS[currentMode])
-            pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct])
+            pushBits(bits, shiftCode, MODE_BITS[currentMode]);
+            pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct]);
           } else {
             // Must latch to a mode that supports shift-to-punct, then shift
-            const latch = getLatchSequence(currentMode, Mode.Upper)
-            emitLatch(bits, latch)
-            currentMode = Mode.Upper
-            pushBits(bits, SHIFT_TO_PUNCT[Mode.Upper]!, MODE_BITS[Mode.Upper])
-            pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct])
+            const latch = getLatchSequence(currentMode, Mode.Upper);
+            emitLatch(bits, latch);
+            currentMode = Mode.Upper;
+            pushBits(bits, SHIFT_TO_PUNCT[Mode.Upper]!, MODE_BITS[Mode.Upper]);
+            pushBits(bits, punctPairVal, MODE_BITS[Mode.Punct]);
           }
         }
-        i += 2
-        continue
+        i += 2;
+        continue;
       }
     }
 
     // --- Try encoding in the current mode ---
-    const currentTable = CHAR_TABLE[currentMode]!
-    const directVal = currentTable[char]
+    const currentTable = CHAR_TABLE[currentMode]!;
+    const directVal = currentTable[char];
     if (directVal !== undefined) {
-      pushBits(bits, directVal, MODE_BITS[currentMode])
-      i++
-      continue
+      pushBits(bits, directVal, MODE_BITS[currentMode]);
+      i++;
+      continue;
     }
 
     // --- Character not in current mode — find best alternative ---
-    const options = charModes(char)
+    const options = charModes(char);
 
     if (options.length > 0) {
       // Determine: should we shift or latch?
-      const bestOption = selectBestTransition(currentMode, options, text, i)
+      const bestOption = selectBestTransition(currentMode, options, text, i);
 
       if (bestOption.shift) {
         // Emit shift code, then character in the shifted mode
         if (bestOption.mode === Mode.Punct) {
-          const shiftCode = SHIFT_TO_PUNCT[currentMode]
+          const shiftCode = SHIFT_TO_PUNCT[currentMode];
           if (shiftCode !== undefined) {
-            pushBits(bits, shiftCode, MODE_BITS[currentMode])
-            pushBits(bits, bestOption.value, MODE_BITS[Mode.Punct])
-            i++
-            continue
+            pushBits(bits, shiftCode, MODE_BITS[currentMode]);
+            pushBits(bits, bestOption.value, MODE_BITS[Mode.Punct]);
+            i++;
+            continue;
           }
         }
         // Shift from Lower to Upper
         if (currentMode === Mode.Lower && bestOption.mode === Mode.Upper) {
-          pushBits(bits, 28, MODE_BITS[Mode.Lower]) // shift to upper
-          pushBits(bits, bestOption.value, MODE_BITS[Mode.Upper])
-          i++
-          continue
+          pushBits(bits, 28, MODE_BITS[Mode.Lower]); // shift to upper
+          pushBits(bits, bestOption.value, MODE_BITS[Mode.Upper]);
+          i++;
+          continue;
         }
         // No direct shift available — fall through to latch
       }
 
       // Latch to the target mode
-      const latch = getLatchSequence(currentMode, bestOption.mode)
-      emitLatch(bits, latch)
-      currentMode = bestOption.mode
-      pushBits(bits, bestOption.value, MODE_BITS[currentMode])
-      i++
-      continue
+      const latch = getLatchSequence(currentMode, bestOption.mode);
+      emitLatch(bits, latch);
+      currentMode = bestOption.mode;
+      pushBits(bits, bestOption.value, MODE_BITS[currentMode]);
+      i++;
+      continue;
     }
 
     // --- Character not in any text mode — use binary shift ---
     if (charCode > 255) {
       throw new InvalidInputError(
-        `Aztec Code does not support character: "${char}" (U+${charCode.toString(16).padStart(4, '0')})`
-      )
+        `Aztec Code does not support character: "${char}" (U+${charCode.toString(16).padStart(4, "0")})`,
+      );
     }
 
     // Collect consecutive bytes that require binary encoding
-    const binaryStart = i
+    const binaryStart = i;
     while (i < text.length) {
-      const c = text[i]!
+      const c = text[i]!;
       if (charModes(c).length > 0) {
         // Check if it's only in a mode far from current — might be cheaper to stay binary
         // For simplicity, break out and let the text encoder handle it
-        break
+        break;
       }
       if (text.charCodeAt(i) > 255) {
         throw new InvalidInputError(
-          `Aztec Code does not support character: "${text[i]}" (U+${text.charCodeAt(i).toString(16).padStart(4, '0')})`
-        )
+          `Aztec Code does not support character: "${text[i]}" (U+${text.charCodeAt(i).toString(16).padStart(4, "0")})`,
+        );
       }
-      i++
+      i++;
     }
 
-    const binaryLen = i - binaryStart
-    emitBinaryShift(bits, text, binaryStart, binaryLen, currentMode)
-    continue
+    const binaryLen = i - binaryStart;
+    emitBinaryShift(bits, text, binaryStart, binaryLen, currentMode);
+    continue;
   }
 
-  return bits
+  return bits;
 }
 
 // ---------------------------------------------------------------------------
@@ -189,9 +189,9 @@ export function encodeHighLevel(text: string): number[] {
 // ---------------------------------------------------------------------------
 
 interface TransitionChoice {
-  mode: Mode
-  value: number
-  shift: boolean
+  mode: Mode;
+  value: number;
+  shift: boolean;
 }
 
 /**
@@ -206,42 +206,42 @@ function selectBestTransition(
   pos: number,
 ): TransitionChoice {
   // Check if shift to Punct makes sense (single punctuation character)
-  const punctOption = options.find(o => o.mode === Mode.Punct)
+  const punctOption = options.find((o) => o.mode === Mode.Punct);
   if (punctOption && SHIFT_TO_PUNCT[currentMode] !== undefined) {
     // Look ahead: if next char is NOT in Punct mode, shift is better than latch
-    const nextChar = pos + 1 < text.length ? text[pos + 1]! : undefined
-    const nextInPunct = nextChar !== undefined && CHAR_TABLE[Mode.Punct]![nextChar] !== undefined
+    const nextChar = pos + 1 < text.length ? text[pos + 1]! : undefined;
+    const nextInPunct = nextChar !== undefined && CHAR_TABLE[Mode.Punct]![nextChar] !== undefined;
     if (!nextInPunct) {
-      return { mode: Mode.Punct, value: punctOption.value, shift: true }
+      return { mode: Mode.Punct, value: punctOption.value, shift: true };
     }
   }
 
   // Check if shift from Lower to Upper makes sense
   if (currentMode === Mode.Lower) {
-    const upperOption = options.find(o => o.mode === Mode.Upper)
+    const upperOption = options.find((o) => o.mode === Mode.Upper);
     if (upperOption) {
-      const nextChar = pos + 1 < text.length ? text[pos + 1]! : undefined
-      const nextInUpper = nextChar !== undefined && CHAR_TABLE[Mode.Upper]![nextChar] !== undefined
-      const nextInLower = nextChar !== undefined && CHAR_TABLE[Mode.Lower]![nextChar] !== undefined
+      const nextChar = pos + 1 < text.length ? text[pos + 1]! : undefined;
+      const nextInUpper = nextChar !== undefined && CHAR_TABLE[Mode.Upper]![nextChar] !== undefined;
+      const nextInLower = nextChar !== undefined && CHAR_TABLE[Mode.Lower]![nextChar] !== undefined;
       if (!nextInUpper || nextInLower) {
-        return { mode: Mode.Upper, value: upperOption.value, shift: true }
+        return { mode: Mode.Upper, value: upperOption.value, shift: true };
       }
     }
   }
 
   // Find the option with the cheapest latch
-  let bestCost = Infinity
-  let best: TransitionChoice = { mode: options[0]!.mode, value: options[0]!.value, shift: false }
+  let bestCost = Infinity;
+  let best: TransitionChoice = { mode: options[0]!.mode, value: options[0]!.value, shift: false };
 
   for (const opt of options) {
-    const latch = getLatchSequence(currentMode, opt.mode)
+    const latch = getLatchSequence(currentMode, opt.mode);
     if (latch.totalBits < bestCost) {
-      bestCost = latch.totalBits
-      best = { mode: opt.mode, value: opt.value, shift: false }
+      bestCost = latch.totalBits;
+      best = { mode: opt.mode, value: opt.value, shift: false };
     }
   }
 
-  return best
+  return best;
 }
 
 /** Emit latch codes into the bit stream */
@@ -250,9 +250,9 @@ function emitLatch(
   latch: { codes: number[]; modes: Mode[]; totalBits: number },
 ): void {
   for (let j = 0; j < latch.codes.length; j++) {
-    const code = latch.codes[j]!
-    const mode = latch.modes[j]!
-    pushBits(bits, code, MODE_BITS[mode])
+    const code = latch.codes[j]!;
+    const mode = latch.modes[j]!;
+    pushBits(bits, code, MODE_BITS[mode]);
   }
 }
 
@@ -276,38 +276,38 @@ function emitBinaryShift(
   length: number,
   currentMode: Mode,
 ): void {
-  let remaining = length
-  let pos = start
+  let remaining = length;
+  let pos = start;
 
   while (remaining > 0) {
-    const chunk = Math.min(remaining, 62)
+    const chunk = Math.min(remaining, 62);
 
     // Emit binary shift intro code
-    const bs = BINARY_SHIFT[currentMode]
+    const bs = BINARY_SHIFT[currentMode];
     if (bs) {
-      pushBits(bits, bs.code, bs.bits)
+      pushBits(bits, bs.code, bs.bits);
     } else {
       // Digit mode: need to latch to Upper first (shouldn't happen in practice
       // since we handle Digit's BS code in the table)
-      pushBits(bits, 15, 4)
+      pushBits(bits, 15, 4);
     }
 
     // Emit length
     if (chunk <= 31) {
-      pushBits(bits, chunk, 5)
+      pushBits(bits, chunk, 5);
     } else {
       // Length 32-62: encode as 0 in 5 bits, then (chunk - 31) in 6 bits
-      pushBits(bits, 0, 5)
-      pushBits(bits, chunk - 31, 6)
+      pushBits(bits, 0, 5);
+      pushBits(bits, chunk - 31, 6);
     }
 
     // Emit raw bytes
     for (let j = 0; j < chunk; j++) {
-      pushBits(bits, text.charCodeAt(pos + j), 8)
+      pushBits(bits, text.charCodeAt(pos + j), 8);
     }
 
-    pos += chunk
-    remaining -= chunk
+    pos += chunk;
+    remaining -= chunk;
   }
 }
 
@@ -317,19 +317,19 @@ function emitBinaryShift(
  * padding bits should be 1 to avoid all-zero codewords).
  */
 export function bitsToCodewords(bits: number[], wordSize: number): number[] {
-  const codewords: number[] = []
-  let i = 0
+  const codewords: number[] = [];
+  let i = 0;
 
   while (i < bits.length) {
-    let value = 0
+    let value = 0;
     for (let b = 0; b < wordSize; b++) {
-      value = (value << 1) | (i < bits.length ? bits[i]! : 1)
-      i++
+      value = (value << 1) | (i < bits.length ? bits[i]! : 1);
+      i++;
     }
-    codewords.push(value)
+    codewords.push(value);
   }
 
-  return codewords
+  return codewords;
 }
 
 /**
@@ -350,49 +350,49 @@ export function bitsToCodewords(bits: number[], wordSize: number): number[] {
  * We implement the full bit-stuffing approach for correctness.
  */
 export function stuffBits(bits: number[], wordSize: number): number[] {
-  const result: number[] = []
-  const mask = (1 << (wordSize - 1)) - 1 // all 1s for (wordSize-1) bits
+  const result: number[] = [];
+  const mask = (1 << (wordSize - 1)) - 1; // all 1s for (wordSize-1) bits
 
-  let i = 0
+  let i = 0;
   while (i < bits.length) {
     // Read wordSize bits (or fewer at the end)
-    let word = 0
-    const end = Math.min(i + wordSize, bits.length)
+    let word = 0;
+    const end = Math.min(i + wordSize, bits.length);
     for (let j = i; j < end; j++) {
-      word = (word << 1) | bits[j]!
+      word = (word << 1) | bits[j]!;
     }
     // Pad incomplete word with 1-bits for checking
-    const bitsRead = end - i
+    const bitsRead = end - i;
     if (bitsRead < wordSize) {
-      word = word << (wordSize - bitsRead)
-      word |= (1 << (wordSize - bitsRead)) - 1
+      word = word << (wordSize - bitsRead);
+      word |= (1 << (wordSize - bitsRead)) - 1;
     }
 
     // Check the first (wordSize-1) bits
-    const top = word >> 1
+    const top = word >> 1;
     if (top === 0) {
       // First (wordSize-1) bits are all 0 — output them plus a stuff bit of 1
       for (let j = i; j < i + wordSize - 1 && j < bits.length; j++) {
-        result.push(bits[j]!)
+        result.push(bits[j]!);
       }
-      result.push(1)
+      result.push(1);
     } else if (top === mask) {
       // First (wordSize-1) bits are all 1 — output them plus a stuff bit of 0
       for (let j = i; j < i + wordSize - 1 && j < bits.length; j++) {
-        result.push(bits[j]!)
+        result.push(bits[j]!);
       }
-      result.push(0)
+      result.push(0);
     } else {
       // Normal codeword — output all bits
       for (let j = i; j < end; j++) {
-        result.push(bits[j]!)
+        result.push(bits[j]!);
       }
     }
 
-    i += (top === 0 || top === mask) ? wordSize - 1 : wordSize
+    i += top === 0 || top === mask ? wordSize - 1 : wordSize;
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -402,11 +402,11 @@ export function stuffBits(bits: number[], wordSize: number): number[] {
  * by the spec (typically alternating high-bit values).
  */
 export function padBits(bits: number[], totalBits: number, wordSize: number): number[] {
-  const result = [...bits]
+  const result = [...bits];
 
   // Pad to codeword boundary with 1s
   while (result.length % wordSize !== 0 && result.length < totalBits) {
-    result.push(1)
+    result.push(1);
   }
 
   // Fill remaining capacity with properly stuffed padding codewords
@@ -414,15 +414,15 @@ export function padBits(bits: number[], totalBits: number, wordSize: number): nu
   // (wordSize-1) zero bits followed by a 1 bit (to avoid all-zero codeword)
   while (result.length + wordSize <= totalBits) {
     for (let i = 0; i < wordSize - 1; i++) {
-      result.push(0)
+      result.push(0);
     }
-    result.push(1) // stuff bit to avoid all-zero codeword
+    result.push(1); // stuff bit to avoid all-zero codeword
   }
 
   // Fill any remaining bits with zeros
   while (result.length < totalBits) {
-    result.push(0)
+    result.push(0);
   }
 
-  return result.slice(0, totalBits)
+  return result.slice(0, totalBits);
 }

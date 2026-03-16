@@ -30,11 +30,11 @@ const qr = qrcode("https://example.com", {
 
 ## Bundle Size
 
-| Entry            | Size (gzip) |
-| :--------------- | :---------- |
-| `etiket`         | ~24KB       |
-| `etiket/barcode` | ~8KB        |
-| `etiket/qr`      | ~10KB       |
-| `etiket/datamatrix` | ~5KB     |
-| `etiket/pdf417`  | ~6KB        |
-| `etiket/aztec`   | ~7KB        |
+| Entry               | Size (gzip) |
+| :------------------ | :---------- |
+| `etiket`            | ~24KB       |
+| `etiket/barcode`    | ~8KB        |
+| `etiket/qr`         | ~10KB       |
+| `etiket/datamatrix` | ~5KB        |
+| `etiket/pdf417`     | ~6KB        |
+| `etiket/aztec`      | ~7KB        |

@@ -20,13 +20,13 @@ barcode("12345", { type: "msi", msiCheckDigit: "none" });
 
 ## Check Digit Types
 
-| Type | Description |
-| :--- | :--- |
-| `mod10` | Luhn algorithm (default) |
-| `mod11` | Weighted sum, weights 2-7 cycling |
-| `mod1010` | Double Mod 10 |
-| `mod1110` | Mod 11 then Mod 10 |
-| `none` | No check digit |
+| Type      | Description                       |
+| :-------- | :-------------------------------- |
+| `mod10`   | Luhn algorithm (default)          |
+| `mod11`   | Weighted sum, weights 2-7 cycling |
+| `mod1010` | Double Mod 10                     |
+| `mod1110` | Mod 11 then Mod 10                |
+| `none`    | No check digit                    |
 
 ## Raw Encoder
 

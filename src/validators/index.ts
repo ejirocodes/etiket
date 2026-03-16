@@ -7,6 +7,6 @@ export {
   isValidInput,
   calculateEANCheckDigit,
   verifyEANCheckDigit,
-} from './barcode'
+} from "./barcode";
 
-export { validateQRInput } from './qr'
+export { validateQRInput } from "./qr";

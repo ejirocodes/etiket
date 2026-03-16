@@ -9,17 +9,17 @@ etiket supports extensive QR code customization with dot shapes, gradients, corn
 ```ts
 import { qrcode } from "etiket";
 
-qrcode("Hello", { dotType: "square" });       // Default
-qrcode("Hello", { dotType: "rounded" });       // Rounded corners
-qrcode("Hello", { dotType: "dots" });          // Circular
-qrcode("Hello", { dotType: "diamond" });       // 45° rotated
-qrcode("Hello", { dotType: "classy" });        // One rounded corner
+qrcode("Hello", { dotType: "square" }); // Default
+qrcode("Hello", { dotType: "rounded" }); // Rounded corners
+qrcode("Hello", { dotType: "dots" }); // Circular
+qrcode("Hello", { dotType: "diamond" }); // 45° rotated
+qrcode("Hello", { dotType: "classy" }); // One rounded corner
 qrcode("Hello", { dotType: "classy-rounded" });
 qrcode("Hello", { dotType: "extra-rounded" }); // Fully rounded
 qrcode("Hello", { dotType: "vertical-line" });
 qrcode("Hello", { dotType: "horizontal-line" });
-qrcode("Hello", { dotType: "small-square" });  // With gap
-qrcode("Hello", { dotType: "tiny-square" });   // Smaller with gap
+qrcode("Hello", { dotType: "small-square" }); // With gap
+qrcode("Hello", { dotType: "tiny-square" }); // Smaller with gap
 ```
 
 Module size (0.1 to 1):
@@ -65,8 +65,8 @@ Customize each of the three finder patterns independently:
 qrcode("Hello", {
   corners: {
     topLeft: {
-      outerShape: "rounded",   // 'square' | 'rounded' | 'dots' | 'extra-rounded' | 'classy'
-      innerShape: "dots",      // 'square' | 'dots' | 'rounded'
+      outerShape: "rounded", // 'square' | 'rounded' | 'dots' | 'extra-rounded' | 'classy'
+      innerShape: "dots", // 'square' | 'dots' | 'rounded'
       outerColor: "#ff0000",
       innerColor: "#0000ff",
     },
@@ -96,10 +96,10 @@ qrcode("Hello", {
   ecLevel: "H", // Recommended: use high EC when embedding a logo
   logo: {
     svg: '<circle r="50" fill="red"/>', // Inline SVG
-    size: 0.3,                           // 30% of QR size
-    margin: 4,                           // Padding around logo
-    hideBackgroundDots: true,            // Remove modules behind logo
-    backgroundColor: "#ffffff",          // Background behind logo
+    size: 0.3, // 30% of QR size
+    margin: 4, // Padding around logo
+    hideBackgroundDots: true, // Remove modules behind logo
+    backgroundColor: "#ffffff", // Background behind logo
   },
 });
 

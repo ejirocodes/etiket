@@ -10,62 +10,62 @@
  * ```
  */
 
-import { encodeCode128 } from './encoders/code128'
-import { encodeEAN13, encodeEAN8 } from './encoders/ean'
-import { encodeQR } from './encoders/qr/index'
-import { encodeCode39, encodeCode39Extended } from './encoders/code39'
-import { encodeCode93, encodeCode93Extended } from './encoders/code93'
-import { encodeITF, encodeITF14 } from './encoders/itf'
-import { encodeUPCA, encodeUPCE } from './encoders/upc'
-import { encodeEAN2, encodeEAN5 } from './encoders/ean-addon'
-import { encodeCodabar } from './encoders/codabar'
-import { encodeMSI } from './encoders/msi'
-import { encodePharmacode } from './encoders/pharmacode'
-import { encodeCode11 } from './encoders/code11'
-import { encodeGS1128 } from './encoders/gs1-128'
-import { encodeDataMatrix } from './encoders/datamatrix/index'
-import { encodePDF417 } from './encoders/pdf417/index'
-import { encodeAztec } from './encoders/aztec/index'
-import { renderBarcodeSVG } from './renderers/svg/barcode'
-import { renderMatrixSVG } from './renderers/svg/matrix'
-import { renderQRCodeSVG } from './renderers/svg/qr'
-import { renderText } from './renderers/text'
-import { svgToDataURI, svgToBase64, svgToBase64Raw } from './renderers/data-uri'
-import type { BarcodeSVGOptions, QRCodeSVGOptions } from './renderers/svg/types'
-import type { QRCodeOptions } from './encoders/qr/types'
+import { encodeCode128 } from "./encoders/code128";
+import { encodeEAN13, encodeEAN8 } from "./encoders/ean";
+import { encodeQR } from "./encoders/qr/index";
+import { encodeCode39, encodeCode39Extended } from "./encoders/code39";
+import { encodeCode93, encodeCode93Extended } from "./encoders/code93";
+import { encodeITF, encodeITF14 } from "./encoders/itf";
+import { encodeUPCA, encodeUPCE } from "./encoders/upc";
+import { encodeEAN2, encodeEAN5 } from "./encoders/ean-addon";
+import { encodeCodabar } from "./encoders/codabar";
+import { encodeMSI } from "./encoders/msi";
+import { encodePharmacode } from "./encoders/pharmacode";
+import { encodeCode11 } from "./encoders/code11";
+import { encodeGS1128 } from "./encoders/gs1-128";
+import { encodeDataMatrix } from "./encoders/datamatrix/index";
+import { encodePDF417 } from "./encoders/pdf417/index";
+import { encodeAztec } from "./encoders/aztec/index";
+import { renderBarcodeSVG } from "./renderers/svg/barcode";
+import { renderMatrixSVG } from "./renderers/svg/matrix";
+import { renderQRCodeSVG } from "./renderers/svg/qr";
+import { renderText } from "./renderers/text";
+import { svgToDataURI, svgToBase64, svgToBase64Raw } from "./renderers/data-uri";
+import type { BarcodeSVGOptions, QRCodeSVGOptions } from "./renderers/svg/types";
+import type { QRCodeOptions } from "./encoders/qr/types";
 
 export type BarcodeType =
-  | 'code128'
-  | 'ean13'
-  | 'ean8'
-  | 'code39'
-  | 'code39ext'
-  | 'code93'
-  | 'code93ext'
-  | 'itf'
-  | 'itf14'
-  | 'upca'
-  | 'upce'
-  | 'ean2'
-  | 'ean5'
-  | 'codabar'
-  | 'msi'
-  | 'pharmacode'
-  | 'code11'
-  | 'gs1-128'
+  | "code128"
+  | "ean13"
+  | "ean8"
+  | "code39"
+  | "code39ext"
+  | "code93"
+  | "code93ext"
+  | "itf"
+  | "itf14"
+  | "upca"
+  | "upce"
+  | "ean2"
+  | "ean5"
+  | "codabar"
+  | "msi"
+  | "pharmacode"
+  | "code11"
+  | "gs1-128";
 
 export interface BarcodeOptions extends BarcodeSVGOptions {
-  type?: BarcodeType
+  type?: BarcodeType;
   /** MSI check digit type */
-  msiCheckDigit?: 'mod10' | 'mod11' | 'mod1010' | 'mod1110' | 'none'
+  msiCheckDigit?: "mod10" | "mod11" | "mod1010" | "mod1110" | "none";
   /** Code 39 check digit */
-  code39CheckDigit?: boolean
+  code39CheckDigit?: boolean;
   /** Codabar start/stop characters */
-  codabarStart?: string
-  codabarStop?: string
+  codabarStart?: string;
+  codabarStop?: string;
 }
 
-export type { BarcodeSVGOptions, QRCodeSVGOptions, QRCodeOptions }
+export type { BarcodeSVGOptions, QRCodeSVGOptions, QRCodeOptions };
 
 // Re-export renderer types
 export type {
@@ -75,10 +75,10 @@ export type {
   RadialGradientOptions,
   CornerOptions,
   LogoOptions,
-} from './renderers/svg/types'
+} from "./renderers/svg/types";
 
 // Re-export QR types
-export type { ErrorCorrectionLevel, EncodingMode } from './encoders/qr/types'
+export type { ErrorCorrectionLevel, EncodingMode } from "./encoders/qr/types";
 
 /**
  * Generate a barcode as SVG string
@@ -103,74 +103,81 @@ export type { ErrorCorrectionLevel, EncodingMode } from './encoders/qr/types'
  * ```
  */
 export function barcode(text: string, options: BarcodeOptions = {}): string {
-  const { type = 'code128', msiCheckDigit, code39CheckDigit, codabarStart, codabarStop, ...svgOptions } = options
+  const {
+    type = "code128",
+    msiCheckDigit,
+    code39CheckDigit,
+    codabarStart,
+    codabarStop,
+    ...svgOptions
+  } = options;
 
-  let bars: number[]
+  let bars: number[];
 
   switch (type) {
-    case 'code128':
-      bars = encodeCode128(text)
-      break
-    case 'ean13':
-      bars = encodeEAN13(text).bars
-      break
-    case 'ean8':
-      bars = encodeEAN8(text).bars
-      break
-    case 'code39':
-      bars = encodeCode39(text, { checkDigit: code39CheckDigit })
-      break
-    case 'code39ext':
-      bars = encodeCode39Extended(text, { checkDigit: code39CheckDigit })
-      break
-    case 'code93':
-      bars = encodeCode93(text)
-      break
-    case 'code93ext':
-      bars = encodeCode93Extended(text)
-      break
-    case 'itf':
-      bars = encodeITF(text)
-      break
-    case 'itf14':
-      bars = encodeITF14(text)
-      break
-    case 'upca':
-      bars = encodeUPCA(text).bars
-      break
-    case 'upce':
-      bars = encodeUPCE(text).bars
-      break
-    case 'ean2':
-      bars = encodeEAN2(text)
-      break
-    case 'ean5':
-      bars = encodeEAN5(text)
-      break
-    case 'codabar':
-      bars = encodeCodabar(text, { start: codabarStart, stop: codabarStop })
-      break
-    case 'msi':
-      bars = encodeMSI(text, { checkDigit: msiCheckDigit })
-      break
-    case 'pharmacode':
-      bars = encodePharmacode(Number(text))
-      break
-    case 'code11':
-      bars = encodeCode11(text)
-      break
-    case 'gs1-128':
-      bars = encodeGS1128(text)
-      break
+    case "code128":
+      bars = encodeCode128(text);
+      break;
+    case "ean13":
+      bars = encodeEAN13(text).bars;
+      break;
+    case "ean8":
+      bars = encodeEAN8(text).bars;
+      break;
+    case "code39":
+      bars = encodeCode39(text, { checkDigit: code39CheckDigit });
+      break;
+    case "code39ext":
+      bars = encodeCode39Extended(text, { checkDigit: code39CheckDigit });
+      break;
+    case "code93":
+      bars = encodeCode93(text);
+      break;
+    case "code93ext":
+      bars = encodeCode93Extended(text);
+      break;
+    case "itf":
+      bars = encodeITF(text);
+      break;
+    case "itf14":
+      bars = encodeITF14(text);
+      break;
+    case "upca":
+      bars = encodeUPCA(text).bars;
+      break;
+    case "upce":
+      bars = encodeUPCE(text).bars;
+      break;
+    case "ean2":
+      bars = encodeEAN2(text);
+      break;
+    case "ean5":
+      bars = encodeEAN5(text);
+      break;
+    case "codabar":
+      bars = encodeCodabar(text, { start: codabarStart, stop: codabarStop });
+      break;
+    case "msi":
+      bars = encodeMSI(text, { checkDigit: msiCheckDigit });
+      break;
+    case "pharmacode":
+      bars = encodePharmacode(Number(text));
+      break;
+    case "code11":
+      bars = encodeCode11(text);
+      break;
+    case "gs1-128":
+      bars = encodeGS1128(text);
+      break;
     default:
-      throw new Error(`Unsupported barcode type: ${type}`)
+      throw new Error(`Unsupported barcode type: ${type}`);
   }
 
   return renderBarcodeSVG(bars, {
     ...svgOptions,
     text: svgOptions.showText !== false ? (svgOptions.text ?? text) : undefined,
     showText: svgOptions.showText ?? false,
-  })
+  });
 }
 
 /**
@@ -188,227 +195,289 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
  * ```
  */
 export function qrcode(text: string, options: QRCodeSVGOptions & QRCodeOptions = {}): string {
-  const { size, margin, color, background, dotType, dotSize, corners, logo, xmlDeclaration, ...qrOptions } = options
-  const matrix = encodeQR(text, qrOptions)
-  return renderQRCodeSVG(matrix, { size, margin, color, background, dotType, dotSize, corners, logo, xmlDeclaration })
+  const {
+    size,
+    margin,
+    color,
+    background,
+    dotType,
+    dotSize,
+    corners,
+    logo,
+    xmlDeclaration,
+    ...qrOptions
+  } = options;
+  const matrix = encodeQR(text, qrOptions);
+  return renderQRCodeSVG(matrix, {
+    size,
+    margin,
+    color,
+    background,
+    dotType,
+    dotSize,
+    corners,
+    logo,
+    xmlDeclaration,
+  });
 }
 
 /**
  * Generate a QR code as terminal-printable string
  */
 export function qrcodeTerminal(text: string, options?: QRCodeOptions): string {
-  const matrix = encodeQR(text, options)
-  return renderText(matrix)
+  const matrix = encodeQR(text, options);
+  return renderText(matrix);
 }
 
 /**
  * Generate a barcode as data URI
  */
 export function barcodeDataURI(text: string, options?: BarcodeOptions): string {
-  return svgToDataURI(barcode(text, options))
+  return svgToDataURI(barcode(text, options));
 }
 
 /**
  * Generate a QR code as data URI
  */
 export function qrcodeDataURI(text: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return svgToDataURI(qrcode(text, options))
+  return svgToDataURI(qrcode(text, options));
 }
 
 /**
  * Generate a barcode as base64 string
  */
 export function barcodeBase64(text: string, options?: BarcodeOptions): string {
-  return svgToBase64(barcode(text, options))
+  return svgToBase64(barcode(text, options));
 }
 
 /**
  * Generate a QR code as base64 string
  */
 export function qrcodeBase64(text: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return svgToBase64(qrcode(text, options))
+  return svgToBase64(qrcode(text, options));
 }
 
 /**
  * Generate a Data Matrix as SVG string
  */
-export function datamatrix(text: string, options?: { size?: number; color?: string; background?: string; margin?: number }): string {
-  const matrix = encodeDataMatrix(text)
-  return renderMatrixSVG(matrix, options)
+export function datamatrix(
+  text: string,
+  options?: { size?: number; color?: string; background?: string; margin?: number },
+): string {
+  const matrix = encodeDataMatrix(text);
+  return renderMatrixSVG(matrix, options);
 }
 
 /**
  * Generate a PDF417 barcode as SVG string
  */
-export function pdf417(text: string, options?: { ecLevel?: number; columns?: number; compact?: boolean; width?: number; height?: number; color?: string; background?: string }): string {
-  const { ecLevel, columns, compact, ...svgOpts } = options ?? {}
-  const result = encodePDF417(text, { ecLevel, columns, compact })
-  return renderMatrixSVG(result.matrix, { size: svgOpts.width ?? 400, ...svgOpts })
+export function pdf417(
+  text: string,
+  options?: {
+    ecLevel?: number;
+    columns?: number;
+    compact?: boolean;
+    width?: number;
+    height?: number;
+    color?: string;
+    background?: string;
+  },
+): string {
+  const { ecLevel, columns, compact, ...svgOpts } = options ?? {};
+  const result = encodePDF417(text, { ecLevel, columns, compact });
+  return renderMatrixSVG(result.matrix, { size: svgOpts.width ?? 400, ...svgOpts });
 }
 
 /**
  * Generate an Aztec Code as SVG string
  */
-export function aztec(text: string, options?: { ecPercent?: number; layers?: number; compact?: boolean; size?: number; color?: string; background?: string; margin?: number }): string {
-  const { ecPercent, layers, compact, ...svgOpts } = options ?? {}
-  const matrix = encodeAztec(text, { ecPercent, layers, compact })
-  return renderMatrixSVG(matrix, { margin: 0, ...svgOpts })
+export function aztec(
+  text: string,
+  options?: {
+    ecPercent?: number;
+    layers?: number;
+    compact?: boolean;
+    size?: number;
+    color?: string;
+    background?: string;
+    margin?: number;
+  },
+): string {
+  const { ecPercent, layers, compact, ...svgOpts } = options ?? {};
+  const matrix = encodeAztec(text, { ecPercent, layers, compact });
+  return renderMatrixSVG(matrix, { margin: 0, ...svgOpts });
 }
 
 // Convenience functions
 /**
  * Generate a WiFi QR code
  */
-export function wifi(ssid: string, password: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  const encryption = 'WPA'
-  const text = `WIFI:T:${encryption};S:${escapeWifi(ssid)};P:${escapeWifi(password)};;`
-  return qrcode(text, options)
+export function wifi(
+  ssid: string,
+  password: string,
+  options?: QRCodeSVGOptions & QRCodeOptions,
+): string {
+  const encryption = "WPA";
+  const text = `WIFI:T:${encryption};S:${escapeWifi(ssid)};P:${escapeWifi(password)};;`;
+  return qrcode(text, options);
 }
 
 /**
  * Generate a URL QR code
  */
 export function url(urlString: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return qrcode(urlString, options)
+  return qrcode(urlString, options);
 }
 
 /**
  * Generate an email QR code
  */
 export function email(address: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return qrcode(`mailto:${address}`, options)
+  return qrcode(`mailto:${address}`, options);
 }
 
 /**
  * Generate an SMS QR code
  */
-export function sms(number: string, body?: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  const text = body ? `sms:${number}?body=${encodeURIComponent(body)}` : `sms:${number}`
-  return qrcode(text, options)
+export function sms(
+  number: string,
+  body?: string,
+  options?: QRCodeSVGOptions & QRCodeOptions,
+): string {
+  const text = body ? `sms:${number}?body=${encodeURIComponent(body)}` : `sms:${number}`;
+  return qrcode(text, options);
 }
 
 /**
  * Generate a geo location QR code
  */
 export function geo(lat: number, lng: number, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return qrcode(`geo:${lat},${lng}`, options)
+  return qrcode(`geo:${lat},${lng}`, options);
 }
 
 /**
  * Generate a phone call QR code
  */
 export function phone(number: string, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  return qrcode(`tel:${number}`, options)
+  return qrcode(`tel:${number}`, options);
 }
 
 /**
  * Generate a vCard QR code
  */
-export function vcard(contact: {
-  firstName: string
-  lastName?: string
-  phone?: string
-  email?: string
-  org?: string
-  title?: string
-  url?: string
-  address?: string
-}, options?: QRCodeSVGOptions & QRCodeOptions): string {
+export function vcard(
+  contact: {
+    firstName: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+    org?: string;
+    title?: string;
+    url?: string;
+    address?: string;
+  },
+  options?: QRCodeSVGOptions & QRCodeOptions,
+): string {
   const lines = [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    `N:${contact.lastName ?? ''};${contact.firstName};;;`,
-    `FN:${contact.firstName}${contact.lastName ? ` ${contact.lastName}` : ''}`,
-  ]
-  if (contact.phone) lines.push(`TEL:${contact.phone}`)
-  if (contact.email) lines.push(`EMAIL:${contact.email}`)
-  if (contact.org) lines.push(`ORG:${contact.org}`)
-  if (contact.title) lines.push(`TITLE:${contact.title}`)
-  if (contact.url) lines.push(`URL:${contact.url}`)
-  if (contact.address) lines.push(`ADR:;;${contact.address};;;;`)
-  lines.push('END:VCARD')
-  return qrcode(lines.join('\n'), options)
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${contact.lastName ?? ""};${contact.firstName};;;`,
+    `FN:${contact.firstName}${contact.lastName ? ` ${contact.lastName}` : ""}`,
+  ];
+  if (contact.phone) lines.push(`TEL:${contact.phone}`);
+  if (contact.email) lines.push(`EMAIL:${contact.email}`);
+  if (contact.org) lines.push(`ORG:${contact.org}`);
+  if (contact.title) lines.push(`TITLE:${contact.title}`);
+  if (contact.url) lines.push(`URL:${contact.url}`);
+  if (contact.address) lines.push(`ADR:;;${contact.address};;;;`);
+  lines.push("END:VCARD");
+  return qrcode(lines.join("\n"), options);
 }
 
 /**
  * Generate a MeCard QR code (simpler than vCard, used by Android)
  */
-export function mecard(contact: {
-  name: string
-  phone?: string
-  email?: string
-  url?: string
-  address?: string
-}, options?: QRCodeSVGOptions & QRCodeOptions): string {
-  let text = `MECARD:N:${contact.name};`
-  if (contact.phone) text += `TEL:${contact.phone};`
-  if (contact.email) text += `EMAIL:${contact.email};`
-  if (contact.url) text += `URL:${contact.url};`
-  if (contact.address) text += `ADR:${contact.address};`
-  text += ';'
-  return qrcode(text, options)
+export function mecard(
+  contact: {
+    name: string;
+    phone?: string;
+    email?: string;
+    url?: string;
+    address?: string;
+  },
+  options?: QRCodeSVGOptions & QRCodeOptions,
+): string {
+  let text = `MECARD:N:${contact.name};`;
+  if (contact.phone) text += `TEL:${contact.phone};`;
+  if (contact.email) text += `EMAIL:${contact.email};`;
+  if (contact.url) text += `URL:${contact.url};`;
+  if (contact.address) text += `ADR:${contact.address};`;
+  text += ";";
+  return qrcode(text, options);
 }
 
 /**
  * Generate a calendar event QR code (iCalendar format)
  */
-export function event(ev: {
-  title: string
-  start: Date | string
-  end?: Date | string
-  location?: string
-  description?: string
-}, options?: QRCodeSVGOptions & QRCodeOptions): string {
+export function event(
+  ev: {
+    title: string;
+    start: Date | string;
+    end?: Date | string;
+    location?: string;
+    description?: string;
+  },
+  options?: QRCodeSVGOptions & QRCodeOptions,
+): string {
   const fmt = (d: Date | string) => {
-    const date = typeof d === 'string' ? new Date(d) : d
-    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-  }
-  const lines = [
-    'BEGIN:VEVENT',
-    `SUMMARY:${ev.title}`,
-    `DTSTART:${fmt(ev.start)}`,
-  ]
-  if (ev.end) lines.push(`DTEND:${fmt(ev.end)}`)
-  if (ev.location) lines.push(`LOCATION:${ev.location}`)
-  if (ev.description) lines.push(`DESCRIPTION:${ev.description}`)
-  lines.push('END:VEVENT')
-  return qrcode(lines.join('\n'), options)
+    const date = typeof d === "string" ? new Date(d) : d;
+    return date
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
+  };
+  const lines = ["BEGIN:VEVENT", `SUMMARY:${ev.title}`, `DTSTART:${fmt(ev.start)}`];
+  if (ev.end) lines.push(`DTEND:${fmt(ev.end)}`);
+  if (ev.location) lines.push(`LOCATION:${ev.location}`);
+  if (ev.description) lines.push(`DESCRIPTION:${ev.description}`);
+  lines.push("END:VEVENT");
+  return qrcode(lines.join("\n"), options);
 }
 
 function escapeWifi(str: string): string {
-  return str.replace(/([\\;,:"'])/g, '\\$1')
+  return str.replace(/([\\;,:"'])/g, "\\$1");
 }
 
 // Re-export encoders for advanced usage
-export { encodeCode128 } from './encoders/code128'
-export { encodeEAN13, encodeEAN8 } from './encoders/ean'
-export { encodeQR } from './encoders/qr/index'
-export { encodeCode39, encodeCode39Extended } from './encoders/code39'
-export { encodeCode93, encodeCode93Extended } from './encoders/code93'
-export { encodeITF, encodeITF14 } from './encoders/itf'
-export { encodeUPCA, encodeUPCE } from './encoders/upc'
-export { encodeEAN2, encodeEAN5 } from './encoders/ean-addon'
-export { encodeCodabar } from './encoders/codabar'
-export { encodeMSI } from './encoders/msi'
-export type { MSICheckDigitType } from './encoders/msi'
-export { encodePharmacode } from './encoders/pharmacode'
-export { encodeCode11 } from './encoders/code11'
-export { encodeGS1128 } from './encoders/gs1-128'
-export { encodeDataMatrix } from './encoders/datamatrix/index'
-export { encodePDF417 } from './encoders/pdf417/index'
-export type { PDF417Options } from './encoders/pdf417/index'
-export { encodeAztec } from './encoders/aztec/index'
-export type { AztecOptions } from './encoders/aztec/index'
+export { encodeCode128 } from "./encoders/code128";
+export { encodeEAN13, encodeEAN8 } from "./encoders/ean";
+export { encodeQR } from "./encoders/qr/index";
+export { encodeCode39, encodeCode39Extended } from "./encoders/code39";
+export { encodeCode93, encodeCode93Extended } from "./encoders/code93";
+export { encodeITF, encodeITF14 } from "./encoders/itf";
+export { encodeUPCA, encodeUPCE } from "./encoders/upc";
+export { encodeEAN2, encodeEAN5 } from "./encoders/ean-addon";
+export { encodeCodabar } from "./encoders/codabar";
+export { encodeMSI } from "./encoders/msi";
+export type { MSICheckDigitType } from "./encoders/msi";
+export { encodePharmacode } from "./encoders/pharmacode";
+export { encodeCode11 } from "./encoders/code11";
+export { encodeGS1128 } from "./encoders/gs1-128";
+export { encodeDataMatrix } from "./encoders/datamatrix/index";
+export { encodePDF417 } from "./encoders/pdf417/index";
+export type { PDF417Options } from "./encoders/pdf417/index";
+export { encodeAztec } from "./encoders/aztec/index";
+export type { AztecOptions } from "./encoders/aztec/index";
 
 // Re-export renderers
-export { renderBarcodeSVG } from './renderers/svg/barcode'
-export { renderQRCodeSVG } from './renderers/svg/qr'
-export { renderMatrixSVG } from './renderers/svg/matrix'
-export { renderText } from './renderers/text'
-export { svgToDataURI, svgToBase64, svgToBase64Raw } from './renderers/data-uri'
+export { renderBarcodeSVG } from "./renderers/svg/barcode";
+export { renderQRCodeSVG } from "./renderers/svg/qr";
+export { renderMatrixSVG } from "./renderers/svg/matrix";
+export { renderText } from "./renderers/text";
+export { svgToDataURI, svgToBase64, svgToBase64Raw } from "./renderers/data-uri";
 
 // Re-export error classes
-export { EtiketError, InvalidInputError, CapacityError, CheckDigitError } from './errors'
+export { EtiketError, InvalidInputError, CapacityError, CheckDigitError } from "./errors";
 
 // Re-export validators
 export {
@@ -417,4 +486,4 @@ export {
   calculateEANCheckDigit,
   verifyEANCheckDigit,
   validateQRInput,
-} from './validators/index'
+} from "./validators/index";

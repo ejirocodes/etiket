@@ -7,8 +7,8 @@
 // This module provides the types and stubs for Micro QR support
 
 export interface MicroQROptions {
-  version?: 1 | 2 | 3 | 4 // M1-M4
-  ecLevel?: 'L' | 'M' | 'Q' // H not available in Micro QR
+  version?: 1 | 2 | 3 | 4; // M1-M4
+  ecLevel?: "L" | "M" | "Q"; // H not available in Micro QR
 }
 
 /**
@@ -18,9 +18,9 @@ export interface MicroQROptions {
  * M3: 15x15 modules
  * M4: 17x17 modules
  */
-export const MICRO_QR_SIZES = [11, 13, 15, 17] as const
+export const MICRO_QR_SIZES = [11, 13, 15, 17] as const;
 
 // Placeholder for future implementation
 export function encodeMicroQR(_text: string, _options?: MicroQROptions): boolean[][] {
-  throw new Error('Micro QR Code is not yet implemented')
+  throw new Error("Micro QR Code is not yet implemented");
 }

@@ -54,35 +54,35 @@ import { aztec } from "etiket/aztec";
 
 ### 1D Barcodes
 
-| Format            | Type        | Description                    |
-| :---------------- | :---------- | :----------------------------- |
-| **Code 128**      | `code128`   | Auto charset (A/B/C)          |
-| **Code 39**       | `code39`    | 43-char set, optional check    |
-| **Code 39 Ext**   | `code39ext` | Full ASCII                     |
-| **Code 93**       | `code93`    | Higher density, 2 check digits |
-| **Code 93 Ext**   | `code93ext` | Full ASCII                     |
-| **EAN-13**        | `ean13`     | Auto check digit               |
-| **EAN-8**         | `ean8`      | Auto check digit               |
-| **EAN-5**         | `ean5`      | Addon (book price)             |
-| **EAN-2**         | `ean2`      | Addon (issue number)           |
-| **UPC-A**         | `upca`      | 12-digit, auto check digit     |
-| **UPC-E**         | `upce`      | Compressed 8-digit             |
-| **ITF**           | `itf`       | Interleaved 2 of 5             |
-| **ITF-14**        | `itf14`     | 14-digit with bearer bars      |
-| **Codabar**       | `codabar`   | Libraries, blood banks         |
-| **MSI Plessey**   | `msi`       | Mod10/11/1010/1110             |
-| **Pharmacode**    | `pharmacode`| Pharmaceutical                 |
-| **Code 11**       | `code11`    | Telecommunications             |
-| **GS1-128**       | `gs1-128`   | AI parsing, FNC1               |
+| Format          | Type         | Description                    |
+| :-------------- | :----------- | :----------------------------- |
+| **Code 128**    | `code128`    | Auto charset (A/B/C)           |
+| **Code 39**     | `code39`     | 43-char set, optional check    |
+| **Code 39 Ext** | `code39ext`  | Full ASCII                     |
+| **Code 93**     | `code93`     | Higher density, 2 check digits |
+| **Code 93 Ext** | `code93ext`  | Full ASCII                     |
+| **EAN-13**      | `ean13`      | Auto check digit               |
+| **EAN-8**       | `ean8`       | Auto check digit               |
+| **EAN-5**       | `ean5`       | Addon (book price)             |
+| **EAN-2**       | `ean2`       | Addon (issue number)           |
+| **UPC-A**       | `upca`       | 12-digit, auto check digit     |
+| **UPC-E**       | `upce`       | Compressed 8-digit             |
+| **ITF**         | `itf`        | Interleaved 2 of 5             |
+| **ITF-14**      | `itf14`      | 14-digit with bearer bars      |
+| **Codabar**     | `codabar`    | Libraries, blood banks         |
+| **MSI Plessey** | `msi`        | Mod10/11/1010/1110             |
+| **Pharmacode**  | `pharmacode` | Pharmaceutical                 |
+| **Code 11**     | `code11`     | Telecommunications             |
+| **GS1-128**     | `gs1-128`    | AI parsing, FNC1               |
 
 ### 2D Codes
 
-| Format          | Function       | Description                                    |
-| :-------------- | :------------- | :--------------------------------------------- |
-| **QR Code**     | `qrcode()`     | Versions 1-40, all EC levels, all modes        |
-| **Data Matrix** | `datamatrix()` | ECC 200, 24 square + 6 rectangular sizes       |
-| **PDF417**      | `pdf417()`     | Text/Byte/Numeric compaction, 9 EC levels      |
-| **Aztec**       | `aztec()`      | Compact + full-range, no quiet zone            |
+| Format          | Function       | Description                               |
+| :-------------- | :------------- | :---------------------------------------- |
+| **QR Code**     | `qrcode()`     | Versions 1-40, all EC levels, all modes   |
+| **Data Matrix** | `datamatrix()` | ECC 200, 24 square + 6 rectangular sizes  |
+| **PDF417**      | `pdf417()`     | Text/Byte/Numeric compaction, 9 EC levels |
+| **Aztec**       | `aztec()`      | Compact + full-range, no quiet zone       |
 
 ## Usage
 
@@ -98,25 +98,25 @@ barcode("(01)12345678901234(17)260101", { type: "gs1-128" });
 barcode("HELLO", { type: "code39", code39CheckDigit: true });
 ```
 
-| Option         | Type                                   | Default      | Description                    |
-| :------------- | :------------------------------------- | :----------- | :----------------------------- |
-| `type`         | `BarcodeType`                          | `'code128'`  | Barcode format                 |
-| `height`       | `number`                               | `80`         | Bar height in pixels           |
-| `barWidth`     | `number`                               | `2`          | Width multiplier per module    |
-| `color`        | `string`                               | `'#000'`     | Bar color                      |
-| `background`   | `string`                               | `'#fff'`     | Background color               |
-| `showText`     | `boolean`                              | `false`      | Show human-readable text       |
-| `textPosition` | `'bottom' \| 'top'`                   | `'bottom'`   | Text position                  |
-| `fontSize`     | `number`                               | `14`         | Text font size                 |
-| `fontFamily`   | `string`                               | `'monospace'`| Text font family               |
-| `margin`       | `number`                               | `10`         | Margin around barcode          |
-| `marginTop`    | `number`                               | `margin`     | Top margin                     |
-| `marginBottom` | `number`                               | `margin`     | Bottom margin                  |
-| `marginLeft`   | `number`                               | `margin`     | Left margin                    |
-| `marginRight`  | `number`                               | `margin`     | Right margin                   |
-| `textAlign`    | `'center' \| 'left' \| 'right'`       | `'center'`   | Text alignment                 |
-| `rotation`     | `0 \| 90 \| 180 \| 270`               | `0`          | Barcode rotation               |
-| `bearerBars`   | `boolean`                              | `false`      | Bearer bars (ITF-14)           |
+| Option         | Type                            | Default       | Description                 |
+| :------------- | :------------------------------ | :------------ | :-------------------------- |
+| `type`         | `BarcodeType`                   | `'code128'`   | Barcode format              |
+| `height`       | `number`                        | `80`          | Bar height in pixels        |
+| `barWidth`     | `number`                        | `2`           | Width multiplier per module |
+| `color`        | `string`                        | `'#000'`      | Bar color                   |
+| `background`   | `string`                        | `'#fff'`      | Background color            |
+| `showText`     | `boolean`                       | `false`       | Show human-readable text    |
+| `textPosition` | `'bottom' \| 'top'`             | `'bottom'`    | Text position               |
+| `fontSize`     | `number`                        | `14`          | Text font size              |
+| `fontFamily`   | `string`                        | `'monospace'` | Text font family            |
+| `margin`       | `number`                        | `10`          | Margin around barcode       |
+| `marginTop`    | `number`                        | `margin`      | Top margin                  |
+| `marginBottom` | `number`                        | `margin`      | Bottom margin               |
+| `marginLeft`   | `number`                        | `margin`      | Left margin                 |
+| `marginRight`  | `number`                        | `margin`      | Right margin                |
+| `textAlign`    | `'center' \| 'left' \| 'right'` | `'center'`    | Text alignment              |
+| `rotation`     | `0 \| 90 \| 180 \| 270`         | `0`           | Barcode rotation            |
+| `bearerBars`   | `boolean`                       | `false`       | Bearer bars (ITF-14)        |
 
 ### QR Codes
 
@@ -149,21 +149,21 @@ qrcode("Test", {
 });
 ```
 
-| Option           | Type                          | Default     | Description              |
-| :--------------- | :---------------------------- | :---------- | :----------------------- |
-| `size`           | `number`                      | `200`       | SVG size in pixels       |
-| `ecLevel`        | `'L' \| 'M' \| 'Q' \| 'H'`  | `'M'`       | Error correction level   |
-| `version`        | `number`                      | auto        | QR version (1-40)        |
-| `mode`           | `'numeric' \| 'alphanumeric' \| 'byte' \| 'auto'` | `'auto'` | Encoding mode |
-| `mask`           | `0-7`                         | auto        | Mask pattern             |
-| `color`          | `string \| GradientOptions`   | `'#000'`    | Module color             |
-| `background`     | `string \| GradientOptions`   | `'#fff'`    | Background color         |
-| `margin`         | `number`                      | `4`         | Quiet zone in modules    |
-| `dotType`        | `DotType`                     | `'square'`  | Module shape             |
-| `dotSize`        | `number`                      | `1`         | Module size (0.1-1)      |
-| `corners`        | `object`                      | —           | Finder pattern styling   |
-| `logo`           | `LogoOptions`                 | —           | Center logo embedding    |
-| `xmlDeclaration` | `boolean`                     | `false`     | Add XML declaration      |
+| Option           | Type                                              | Default    | Description            |
+| :--------------- | :------------------------------------------------ | :--------- | :--------------------- |
+| `size`           | `number`                                          | `200`      | SVG size in pixels     |
+| `ecLevel`        | `'L' \| 'M' \| 'Q' \| 'H'`                        | `'M'`      | Error correction level |
+| `version`        | `number`                                          | auto       | QR version (1-40)      |
+| `mode`           | `'numeric' \| 'alphanumeric' \| 'byte' \| 'auto'` | `'auto'`   | Encoding mode          |
+| `mask`           | `0-7`                                             | auto       | Mask pattern           |
+| `color`          | `string \| GradientOptions`                       | `'#000'`   | Module color           |
+| `background`     | `string \| GradientOptions`                       | `'#fff'`   | Background color       |
+| `margin`         | `number`                                          | `4`        | Quiet zone in modules  |
+| `dotType`        | `DotType`                                         | `'square'` | Module shape           |
+| `dotSize`        | `number`                                          | `1`        | Module size (0.1-1)    |
+| `corners`        | `object`                                          | —          | Finder pattern styling |
+| `logo`           | `LogoOptions`                                     | —          | Center logo embedding  |
+| `xmlDeclaration` | `boolean`                                         | `false`    | Add XML declaration    |
 
 **Dot types:** `square`, `rounded`, `dots`, `diamond`, `classy`, `classy-rounded`, `extra-rounded`, `vertical-line`, `horizontal-line`, `small-square`, `tiny-square`
 
@@ -277,28 +277,28 @@ const qrSvg = renderQRCodeSVG(matrix, { size: 400, dotType: "dots" });
 
 ## Comparison
 
-| Feature | etiket | [uqr](https://github.com/unjs/uqr) | [bwip-js](https://github.com/metafloor/bwip-js) | [JsBarcode](https://github.com/lindell/JsBarcode) | [qr-code-styling](https://github.com/kozakdenys/qr-code-styling) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| Zero dependencies | :white_check_mark: | :white_check_mark: | :x: (1.5MB+) | :x: (xmldom) | :x: (qrcode) |
-| TypeScript-first | :white_check_mark: | :white_check_mark: | :x: | :x: | Partial |
-| Tree-shakeable | :white_check_mark: | :x: | :x: | :x: | :x: |
-| 1D barcodes (18 types) | :white_check_mark: | :x: | :white_check_mark: (100+) | :white_check_mark: (13) | :x: |
-| QR Code (v1-40, all EC) | :white_check_mark: | :white_check_mark: | :white_check_mark: | :x: | :white_check_mark: |
-| Data Matrix | :white_check_mark: | :x: | :white_check_mark: | :x: | :x: |
-| PDF417 | :white_check_mark: | :x: | :white_check_mark: | :x: | :x: |
-| Aztec Code | :white_check_mark: | :x: | :white_check_mark: | :x: | :x: |
-| QR dot styling (12 types) | :white_check_mark: | :x: | :x: | :x: | :white_check_mark: |
-| QR gradients | :white_check_mark: | :x: | :x: | :x: | :white_check_mark: |
-| QR corner styling | :white_check_mark: | :x: | :x: | :x: | :white_check_mark: |
-| QR logo embedding | :white_check_mark: | :x: | :x: | :x: | :white_check_mark: |
-| CLI tool | :white_check_mark: | :x: | :white_check_mark: | :x: | :x: |
-| Terminal output | :white_check_mark: | :white_check_mark: | :x: | :x: | :x: |
-| Convenience helpers (WiFi, vCard...) | :white_check_mark: | :x: | :x: | :x: | :x: |
-| Input validation | :white_check_mark: | :x: | :x: | :x: | :x: |
-| SVG output | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| PNG/Canvas output | :x: | :x: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| Pure ESM | :white_check_mark: | :white_check_mark: | :x: (CJS) | :x: (CJS) | :x: (CJS) |
-| Bundle size (gzip) | ~24KB | ~12KB | ~160KB | ~15KB | ~30KB+deps |
+| Feature                              |       etiket       | [uqr](https://github.com/unjs/uqr) | [bwip-js](https://github.com/metafloor/bwip-js) | [JsBarcode](https://github.com/lindell/JsBarcode) | [qr-code-styling](https://github.com/kozakdenys/qr-code-styling) |
+| :----------------------------------- | :----------------: | :--------------------------------: | :---------------------------------------------: | :-----------------------------------------------: | :--------------------------------------------------------------: |
+| Zero dependencies                    | :white_check_mark: |         :white_check_mark:         |                  :x: (1.5MB+)                   |                   :x: (xmldom)                    |                           :x: (qrcode)                           |
+| TypeScript-first                     | :white_check_mark: |         :white_check_mark:         |                       :x:                       |                        :x:                        |                             Partial                              |
+| Tree-shakeable                       | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                               :x:                                |
+| 1D barcodes (18 types)               | :white_check_mark: |                :x:                 |            :white_check_mark: (100+)            |              :white_check_mark: (13)              |                               :x:                                |
+| QR Code (v1-40, all EC)              | :white_check_mark: |         :white_check_mark:         |               :white_check_mark:                |                        :x:                        |                        :white_check_mark:                        |
+| Data Matrix                          | :white_check_mark: |                :x:                 |               :white_check_mark:                |                        :x:                        |                               :x:                                |
+| PDF417                               | :white_check_mark: |                :x:                 |               :white_check_mark:                |                        :x:                        |                               :x:                                |
+| Aztec Code                           | :white_check_mark: |                :x:                 |               :white_check_mark:                |                        :x:                        |                               :x:                                |
+| QR dot styling (12 types)            | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                        :white_check_mark:                        |
+| QR gradients                         | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                        :white_check_mark:                        |
+| QR corner styling                    | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                        :white_check_mark:                        |
+| QR logo embedding                    | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                        :white_check_mark:                        |
+| CLI tool                             | :white_check_mark: |                :x:                 |               :white_check_mark:                |                        :x:                        |                               :x:                                |
+| Terminal output                      | :white_check_mark: |         :white_check_mark:         |                       :x:                       |                        :x:                        |                               :x:                                |
+| Convenience helpers (WiFi, vCard...) | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                               :x:                                |
+| Input validation                     | :white_check_mark: |                :x:                 |                       :x:                       |                        :x:                        |                               :x:                                |
+| SVG output                           | :white_check_mark: |         :white_check_mark:         |               :white_check_mark:                |                :white_check_mark:                 |                        :white_check_mark:                        |
+| PNG/Canvas output                    |        :x:         |                :x:                 |               :white_check_mark:                |                :white_check_mark:                 |                        :white_check_mark:                        |
+| Pure ESM                             | :white_check_mark: |         :white_check_mark:         |                    :x: (CJS)                    |                     :x: (CJS)                     |                            :x: (CJS)                             |
+| Bundle size (gzip)                   |       ~24KB        |               ~12KB                |                     ~160KB                      |                       ~15KB                       |                            ~30KB+deps                            |
 
 **etiket is the only library that combines** 1D barcodes + 2D codes + styled QR codes + zero dependencies + tree-shaking in a single package.
 

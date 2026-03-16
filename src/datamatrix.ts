@@ -7,6 +7,6 @@
  * ```
  */
 
-export { datamatrix } from './index'
-export { encodeDataMatrix } from './encoders/datamatrix/index'
-export { renderMatrixSVG } from './renderers/svg/matrix'
+export { datamatrix } from "./index";
+export { encodeDataMatrix } from "./encoders/datamatrix/index";
+export { renderMatrixSVG } from "./renderers/svg/matrix";

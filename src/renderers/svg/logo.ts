@@ -3,13 +3,13 @@
  * Calculates which modules to hide and generates the logo SVG element
  */
 
-import type { LogoOptions } from './types'
+import type { LogoOptions } from "./types";
 
 export interface LogoPlacement {
   /** SVG element string for the logo */
-  svg: string
+  svg: string;
   /** Set of module coordinates to hide: `${row},${col}` */
-  hiddenModules: Set<string>
+  hiddenModules: Set<string>;
 }
 
 /**
@@ -21,46 +21,50 @@ export function calculateLogoPlacement(
   moduleSize: number,
   margin: number,
 ): LogoPlacement {
-  const logoSize = (options.size ?? 0.3)
-  const logoMargin = options.margin ?? 0
-  const hideBackground = options.hideBackgroundDots ?? true
+  const logoSize = options.size ?? 0.3;
+  const logoMargin = options.margin ?? 0;
+  const hideBackground = options.hideBackgroundDots ?? true;
 
   // Logo dimensions in pixels
-  const totalSize = moduleCount * moduleSize
-  const logoPixelSize = totalSize * logoSize
-  const logoX = margin * moduleSize + (totalSize - logoPixelSize) / 2
-  const logoY = margin * moduleSize + (totalSize - logoPixelSize) / 2
+  const totalSize = moduleCount * moduleSize;
+  const logoPixelSize = totalSize * logoSize;
+  const logoX = margin * moduleSize + (totalSize - logoPixelSize) / 2;
+  const logoY = margin * moduleSize + (totalSize - logoPixelSize) / 2;
 
   // Calculate hidden modules
-  const hiddenModules = new Set<string>()
+  const hiddenModules = new Set<string>();
 
   if (hideBackground) {
-    const startModule = Math.floor((moduleCount - moduleCount * logoSize) / 2 - logoMargin / moduleSize)
-    const endModule = Math.ceil((moduleCount + moduleCount * logoSize) / 2 + logoMargin / moduleSize)
+    const startModule = Math.floor(
+      (moduleCount - moduleCount * logoSize) / 2 - logoMargin / moduleSize,
+    );
+    const endModule = Math.ceil(
+      (moduleCount + moduleCount * logoSize) / 2 + logoMargin / moduleSize,
+    );
 
     for (let r = Math.max(0, startModule); r < Math.min(moduleCount, endModule); r++) {
       for (let c = Math.max(0, startModule); c < Math.min(moduleCount, endModule); c++) {
-        hiddenModules.add(`${r},${c}`)
+        hiddenModules.add(`${r},${c}`);
       }
     }
   }
 
   // Generate logo SVG
-  let svg = ''
+  let svg = "";
 
   if (options.backgroundColor) {
-    const bgPad = logoMargin
-    svg += `<rect x="${logoX - bgPad}" y="${logoY - bgPad}" width="${logoPixelSize + 2 * bgPad}" height="${logoPixelSize + 2 * bgPad}" fill="${options.backgroundColor}" rx="4"/>`
+    const bgPad = logoMargin;
+    svg += `<rect x="${logoX - bgPad}" y="${logoY - bgPad}" width="${logoPixelSize + 2 * bgPad}" height="${logoPixelSize + 2 * bgPad}" fill="${options.backgroundColor}" rx="4"/>`;
   }
 
   if (options.svg) {
     // Inline SVG logo — placed within a nested SVG to properly scale regardless of viewBox
-    svg += `<svg x="${logoX}" y="${logoY}" width="${logoPixelSize}" height="${logoPixelSize}" viewBox="0 0 1 1">`
-    svg += `<g transform="scale(${1})">${options.svg}</g></svg>`
+    svg += `<svg x="${logoX}" y="${logoY}" width="${logoPixelSize}" height="${logoPixelSize}" viewBox="0 0 1 1">`;
+    svg += `<g transform="scale(${1})">${options.svg}</g></svg>`;
   } else if (options.path) {
     // SVG path data — assumes 100x100 coordinate space
-    svg += `<path d="${options.path}" transform="translate(${logoX},${logoY}) scale(${logoPixelSize / 100})" fill="currentColor"/>`
+    svg += `<path d="${options.path}" transform="translate(${logoX},${logoY}) scale(${logoPixelSize / 100})" fill="currentColor"/>`;
   }
 
-  return { svg, hiddenModules }
+  return { svg, hiddenModules };
 }

@@ -25,8 +25,8 @@ barcode("hello world", { type: "code39ext" });
 
 ## Options
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
+| Option             | Type      | Default | Description               |
+| :----------------- | :-------- | :------ | :------------------------ |
 | `code39CheckDigit` | `boolean` | `false` | Add modulo-43 check digit |
 
 ## Raw Encoder

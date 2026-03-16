@@ -2,6 +2,50 @@
   "name": "etiket",
   "version": "0.0.2",
   "description": "Zero-dependency barcode & QR code SVG generator. 20+ formats, styled QR codes, tree-shakeable. Pure TypeScript, works everywhere.",
+  "keywords": [
+    "aztec",
+    "barcode",
+    "codabar",
+    "code128",
+    "code39",
+    "code93",
+    "data-matrix",
+    "datamatrix",
+    "ean13",
+    "ean8",
+    "esm",
+    "generator",
+    "gs1-128",
+    "itf",
+    "label",
+    "msi",
+    "pdf417",
+    "pharmacode",
+    "qr",
+    "qr-code",
+    "qrcode",
+    "svg",
+    "tree-shakeable",
+    "typescript",
+    "upc",
+    "zero-dependency"
+  ],
+  "homepage": "https://github.com/productdevbook/etiket",
+  "bugs": {
+    "url": "https://github.com/productdevbook/etiket/issues"
+  },
+  "license": "MIT",
+  "author": "productdevbook",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/productdevbook/etiket"
+  },
+  "bin": {
+    "etiket": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -31,12 +75,6 @@
       "default": "./dist/aztec.mjs"
     }
   },
-  "bin": {
-    "etiket": "./dist/cli.mjs"
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
@@ -50,44 +88,6 @@
     "bumpp": "bumpp package.json",
     "release": "pnpm build && pnpm bumpp",
     "prepublishOnly": "pnpm run build"
-  },
-  "keywords": [
-    "barcode",
-    "qrcode",
-    "qr-code",
-    "svg",
-    "code128",
-    "code39",
-    "code93",
-    "ean13",
-    "ean8",
-    "upc",
-    "itf",
-    "codabar",
-    "msi",
-    "pharmacode",
-    "gs1-128",
-    "data-matrix",
-    "datamatrix",
-    "pdf417",
-    "aztec",
-    "qr",
-    "label",
-    "generator",
-    "zero-dependency",
-    "esm",
-    "typescript",
-    "tree-shakeable"
-  ],
-  "author": "productdevbook",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/productdevbook/etiket"
-  },
-  "homepage": "https://github.com/productdevbook/etiket",
-  "bugs": {
-    "url": "https://github.com/productdevbook/etiket/issues"
   },
   "devDependencies": {
     "bumpp": "latest",

@@ -15,11 +15,11 @@ barcode("ABC-123", { type: "code128", showText: true });
 
 Code 128 has three character sets:
 
-| Set | Characters | Efficiency |
-| :-- | :--------- | :--------- |
-| **A** | Control chars (0-31) + uppercase + digits | Standard |
-| **B** | Printable ASCII (32-126) | Standard |
-| **C** | Digit pairs (00-99) | 2x for numbers |
+| Set   | Characters                                | Efficiency     |
+| :---- | :---------------------------------------- | :------------- |
+| **A** | Control chars (0-31) + uppercase + digits | Standard       |
+| **B** | Printable ASCII (32-126)                  | Standard       |
+| **C** | Digit pairs (00-99)                       | 2x for numbers |
 
 etiket automatically selects the optimal charset (Auto mode):
 

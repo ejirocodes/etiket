@@ -112,119 +112,119 @@ const PATTERNS: number[][] = [
   [2, 1, 1, 4, 1, 2], // 103 (START_A)
   [2, 1, 1, 2, 1, 4], // 104 (START_B)
   [2, 1, 1, 2, 3, 2], // 105 (START_C)
-]
+];
 
-const STOP_PATTERN = [2, 3, 3, 1, 1, 1, 2] // 7 elements
+const STOP_PATTERN = [2, 3, 3, 1, 1, 1, 2]; // 7 elements
 
-const START_A = 103
-const START_B = 104
-const START_C = 105
-const CODE_A = 101
-const CODE_B = 100
-const CODE_C = 99
+const START_A = 103;
+const START_B = 104;
+const START_C = 105;
+const CODE_A = 101;
+const CODE_B = 100;
+const CODE_C = 99;
 
 /**
  * Encode text as Code 128 Auto (optimized charset selection)
  * Returns array of bar widths (alternating bar/space)
  */
 export function encodeCode128(text: string): number[] {
-  const codes = autoEncode(text)
-  const bars: number[] = []
+  const codes = autoEncode(text);
+  const bars: number[] = [];
 
   for (const code of codes) {
-    const pattern = PATTERNS[code]!
+    const pattern = PATTERNS[code]!;
     for (const width of pattern) {
-      bars.push(width)
+      bars.push(width);
     }
   }
 
   // Stop pattern
   for (const width of STOP_PATTERN) {
-    bars.push(width)
+    bars.push(width);
   }
 
-  return bars
+  return bars;
 }
 
 function autoEncode(text: string): number[] {
   // Determine optimal start code
-  const codes: number[] = []
-  let pos = 0
+  const codes: number[] = [];
+  let pos = 0;
 
   // Check if we should start with Code C (numeric pairs)
-  const numericRun = countNumericFromPos(text, 0)
+  const numericRun = countNumericFromPos(text, 0);
 
   if (numericRun >= 4) {
-    codes.push(START_C)
-    pos = encodeCodeC(text, pos, codes)
+    codes.push(START_C);
+    pos = encodeCodeC(text, pos, codes);
   } else {
-    codes.push(START_B)
+    codes.push(START_B);
   }
 
-  let currentSet: 'A' | 'B' | 'C' = codes[0] === START_C ? 'C' : 'B'
+  let currentSet: "A" | "B" | "C" = codes[0] === START_C ? "C" : "B";
 
   while (pos < text.length) {
-    if (currentSet === 'C') {
+    if (currentSet === "C") {
       // In Code C, check if we should switch
-      const remaining = countNumericFromPos(text, pos)
+      const remaining = countNumericFromPos(text, pos);
       if (remaining >= 2) {
-        pos = encodeCodeC(text, pos, codes)
+        pos = encodeCodeC(text, pos, codes);
       } else {
-        codes.push(CODE_B)
-        currentSet = 'B'
+        codes.push(CODE_B);
+        currentSet = "B";
       }
     } else {
       // In Code B (or A), check if switching to C is beneficial
-      const numRun = countNumericFromPos(text, pos)
+      const numRun = countNumericFromPos(text, pos);
       if (numRun >= 4 || (numRun >= 2 && pos + numRun >= text.length)) {
-        codes.push(CODE_C)
-        currentSet = 'C'
-        pos = encodeCodeC(text, pos, codes)
+        codes.push(CODE_C);
+        currentSet = "C";
+        pos = encodeCodeC(text, pos, codes);
       } else {
-        const charCode = text.charCodeAt(pos)
+        const charCode = text.charCodeAt(pos);
         if (charCode >= 32 && charCode <= 126) {
           // Code B
-          codes.push(charCode - 32)
+          codes.push(charCode - 32);
         } else if (charCode >= 0 && charCode < 32) {
           // Need Code A for control chars
-          if (currentSet !== 'A') {
-            codes.push(CODE_A)
-            currentSet = 'A'
+          if (currentSet !== "A") {
+            codes.push(CODE_A);
+            currentSet = "A";
           }
-          codes.push(charCode + 64)
+          codes.push(charCode + 64);
         }
-        pos++
+        pos++;
       }
     }
   }
 
   // Calculate checksum
-  let checksum = codes[0]!
+  let checksum = codes[0]!;
   for (let i = 1; i < codes.length; i++) {
-    checksum += codes[i]! * i
+    checksum += codes[i]! * i;
   }
-  codes.push(checksum % 103)
+  codes.push(checksum % 103);
 
-  return codes
+  return codes;
 }
 
 function encodeCodeC(text: string, pos: number, codes: number[]): number {
   while (pos + 1 < text.length) {
-    const d1 = text.charCodeAt(pos) - 48
-    const d2 = text.charCodeAt(pos + 1) - 48
-    if (d1 < 0 || d1 > 9 || d2 < 0 || d2 > 9) break
-    codes.push(d1 * 10 + d2)
-    pos += 2
+    const d1 = text.charCodeAt(pos) - 48;
+    const d2 = text.charCodeAt(pos + 1) - 48;
+    if (d1 < 0 || d1 > 9 || d2 < 0 || d2 > 9) break;
+    codes.push(d1 * 10 + d2);
+    pos += 2;
   }
-  return pos
+  return pos;
 }
 
 function countNumericFromPos(text: string, pos: number): number {
-  let count = 0
+  let count = 0;
   while (pos + count < text.length) {
-    const c = text.charCodeAt(pos + count)
-    if (c < 48 || c > 57) break
-    count++
+    const c = text.charCodeAt(pos + count);
+    if (c < 48 || c > 57) break;
+    count++;
   }
-  return count
+  return count;
 }

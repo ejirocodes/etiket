@@ -3,7 +3,7 @@
  * Based on ISO/IEC 18004:2015
  */
 
-import type { ErrorCorrectionLevel } from './types'
+import type { ErrorCorrectionLevel } from "./types";
 
 /**
  * Character count indicator bit lengths by version group and mode
@@ -14,33 +14,33 @@ export const CHAR_COUNT_BITS: Record<string, [number, number, number]> = {
   alphanumeric: [9, 11, 13],
   byte: [8, 16, 16],
   kanji: [8, 10, 12],
-}
+};
 
 /** Get character count bits for a version and mode */
 export function getCharCountBits(version: number, mode: string): number {
-  const bits = CHAR_COUNT_BITS[mode]
-  if (!bits) return 8
-  if (version <= 9) return bits[0]
-  if (version <= 26) return bits[1]
-  return bits[2]
+  const bits = CHAR_COUNT_BITS[mode];
+  if (!bits) return 8;
+  if (version <= 9) return bits[0];
+  if (version <= 26) return bits[1];
+  return bits[2];
 }
 
 /**
  * Alphanumeric character values
  */
-export const ALPHANUMERIC_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
+export const ALPHANUMERIC_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
 
 /**
  * Error correction block information for each version and EC level
  * Format: [totalCodewords, ecCodewordsPerBlock, group1Blocks, group1DataCW, group2Blocks, group2DataCW]
  */
 interface ECBlockInfo {
-  totalDataCodewords: number
-  ecCodewordsPerBlock: number
-  group1Blocks: number
-  group1DataCW: number
-  group2Blocks: number
-  group2DataCW: number
+  totalDataCodewords: number;
+  ecCodewordsPerBlock: number;
+  group1Blocks: number;
+  group1DataCW: number;
+  group2Blocks: number;
+  group2DataCW: number;
 }
 
 // prettier-ignore
@@ -220,7 +220,7 @@ const EC_TABLE: Record<ErrorCorrectionLevel, ECBlockInfo[]> = {
 }
 
 export function getECInfo(version: number, ecLevel: ErrorCorrectionLevel): ECBlockInfo {
-  return EC_TABLE[ecLevel][version]!
+  return EC_TABLE[ecLevel][version]!;
 }
 
 /**
@@ -287,28 +287,29 @@ export const REMAINDER_BITS: number[] = [
  * Total codewords (data + EC) for each version
  */
 export function getTotalCodewords(version: number): number {
-  const size = version * 4 + 17
+  const size = version * 4 + 17;
   // Total modules minus function patterns, format info, version info
   // Formula from spec: data region modules / 8
-  const totalModules = size * size
+  const totalModules = size * size;
   // Function pattern modules
-  const finderModules = 3 * (8 * 8) // 3 finder patterns with separators (approximate)
-  const alignPos = ALIGNMENT_POSITIONS[version - 1]!
-  let alignModules = 0
+  const finderModules = 3 * (8 * 8); // 3 finder patterns with separators (approximate)
+  const alignPos = ALIGNMENT_POSITIONS[version - 1]!;
+  let alignModules = 0;
   if (alignPos.length > 0) {
-    const count = alignPos.length
+    const count = alignPos.length;
     // Alignment patterns that don't overlap with finder patterns
-    const totalAlign = count * count - 3 // minus 3 corners that overlap with finders (for v >= 7 it's more complex but close enough)
-    alignModules = Math.max(0, totalAlign) * 25
+    const totalAlign = count * count - 3; // minus 3 corners that overlap with finders (for v >= 7 it's more complex but close enough)
+    alignModules = Math.max(0, totalAlign) * 25;
   }
-  const timingModules = 2 * (size - 16)
-  const formatModules = 31
-  const versionModules = version >= 7 ? 36 : 0
-  const darkModule = 1
+  const timingModules = 2 * (size - 16);
+  const formatModules = 31;
+  const versionModules = version >= 7 ? 36 : 0;
+  const darkModule = 1;
 
-  const functionModules = finderModules + alignModules + timingModules + formatModules + versionModules + darkModule
-  const dataModules = totalModules - functionModules
-  return Math.floor(dataModules / 8)
+  const functionModules =
+    finderModules + alignModules + timingModules + formatModules + versionModules + darkModule;
+  const dataModules = totalModules - functionModules;
+  return Math.floor(dataModules / 8);
 }
 
 /**

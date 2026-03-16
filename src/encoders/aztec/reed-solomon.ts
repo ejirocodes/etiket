@@ -16,58 +16,58 @@
  *   GF(4096): x^12 + x^6 + x^4 + x + 1        (0x1069)
  */
 
-import { GF_POLY } from './tables'
+import { GF_POLY } from "./tables";
 
 // ---------------------------------------------------------------------------
 // Galois Field arithmetic
 // ---------------------------------------------------------------------------
 
 interface GFTables {
-  exp: number[]
-  log: number[]
-  size: number // 2^wordSize
-  max: number  // size - 1
+  exp: number[];
+  log: number[];
+  size: number; // 2^wordSize
+  max: number; // size - 1
 }
 
 /** Cache of initialized GF tables keyed by word size */
-const gfCache = new Map<number, GFTables>()
+const gfCache = new Map<number, GFTables>();
 
 /** Initialize or retrieve GF lookup tables for a given word size */
 function getGF(wordSize: number): GFTables {
-  const cached = gfCache.get(wordSize)
-  if (cached) return cached
+  const cached = gfCache.get(wordSize);
+  if (cached) return cached;
 
-  const poly = GF_POLY[wordSize]
+  const poly = GF_POLY[wordSize];
   if (poly === undefined) {
-    throw new Error(`No primitive polynomial defined for GF(2^${wordSize})`)
+    throw new Error(`No primitive polynomial defined for GF(2^${wordSize})`);
   }
 
-  const size = 1 << wordSize
-  const max = size - 1
-  const exp = new Array<number>(size * 2)
-  const log = new Array<number>(size).fill(0)
+  const size = 1 << wordSize;
+  const max = size - 1;
+  const exp = new Array<number>(size * 2);
+  const log = new Array<number>(size).fill(0);
 
-  let x = 1
+  let x = 1;
   for (let i = 0; i < max; i++) {
-    exp[i] = x
-    log[x] = i
-    x = x << 1
-    if (x >= size) x ^= poly
+    exp[i] = x;
+    log[x] = i;
+    x = x << 1;
+    if (x >= size) x ^= poly;
   }
   // Extend exp table for easier modular arithmetic
   for (let i = max; i < size * 2; i++) {
-    exp[i] = exp[i - max]!
+    exp[i] = exp[i - max]!;
   }
 
-  const tables: GFTables = { exp, log, size, max }
-  gfCache.set(wordSize, tables)
-  return tables
+  const tables: GFTables = { exp, log, size, max };
+  gfCache.set(wordSize, tables);
+  return tables;
 }
 
 /** Multiply two GF elements */
 function gfMul(gf: GFTables, a: number, b: number): number {
-  if (a === 0 || b === 0) return 0
-  return gf.exp[(gf.log[a]! + gf.log[b]!) % gf.max]!
+  if (a === 0 || b === 0) return 0;
+  return gf.exp[(gf.log[a]! + gf.log[b]!) % gf.max]!;
 }
 
 // ---------------------------------------------------------------------------
@@ -83,30 +83,30 @@ function gfMul(gf: GFTables, a: number, b: number): number {
  * @returns Array of `ecCount` error correction codewords
  */
 export function rsEncode(data: number[], ecCount: number, wordSize: number): number[] {
-  const gf = getGF(wordSize)
+  const gf = getGF(wordSize);
 
   // Build generator polynomial: g(x) = (x - a^0)(x - a^1)...(x - a^(ecCount-1))
-  const gen = new Array<number>(ecCount + 1).fill(0)
-  gen[0] = 1
+  const gen = new Array<number>(ecCount + 1).fill(0);
+  gen[0] = 1;
 
   for (let i = 0; i < ecCount; i++) {
     for (let j = gen.length - 1; j >= 1; j--) {
-      gen[j] = gen[j - 1]! ^ gfMul(gf, gen[j]!, gf.exp[i]!)
+      gen[j] = gen[j - 1]! ^ gfMul(gf, gen[j]!, gf.exp[i]!);
     }
-    gen[0] = gfMul(gf, gen[0]!, gf.exp[i]!)
+    gen[0] = gfMul(gf, gen[0]!, gf.exp[i]!);
   }
 
   // Polynomial long division: data polynomial / generator polynomial
-  const result = new Array<number>(ecCount).fill(0)
+  const result = new Array<number>(ecCount).fill(0);
   for (const cw of data) {
-    const lead = cw ^ result[0]!
+    const lead = cw ^ result[0]!;
     for (let j = 0; j < ecCount - 1; j++) {
-      result[j] = result[j + 1]! ^ gfMul(gf, lead, gen[j + 1]!)
+      result[j] = result[j + 1]! ^ gfMul(gf, lead, gen[j + 1]!);
     }
-    result[ecCount - 1] = gfMul(gf, lead, gen[ecCount]!)
+    result[ecCount - 1] = gfMul(gf, lead, gen[ecCount]!);
   }
 
-  return result
+  return result;
 }
 
 /**
@@ -120,20 +120,20 @@ export function rsEncode(data: number[], ecCount: number, wordSize: number): num
  * @returns 28-bit array (MSB first)
  */
 export function encodeCompactModeMessage(layers: number, dataCodewords: number): number[] {
-  const val = ((layers - 1) << 6) | (dataCodewords - 1)
-  const cw0 = (val >> 4) & 0x0F
-  const cw1 = val & 0x0F
+  const val = ((layers - 1) << 6) | (dataCodewords - 1);
+  const cw0 = (val >> 4) & 0x0f;
+  const cw1 = val & 0x0f;
 
-  const ec = rsEncode([cw0, cw1], 5, 4)
+  const ec = rsEncode([cw0, cw1], 5, 4);
 
   // Convert all 7 codewords to a 28-bit array
-  const bits: number[] = []
+  const bits: number[] = [];
   for (const cw of [cw0, cw1, ...ec]) {
     for (let b = 3; b >= 0; b--) {
-      bits.push((cw >> b) & 1)
+      bits.push((cw >> b) & 1);
     }
   }
-  return bits
+  return bits;
 }
 
 /**
@@ -150,20 +150,20 @@ export function encodeCompactModeMessage(layers: number, dataCodewords: number):
  */
 export function encodeFullModeMessage(layers: number, dataCodewords: number): number[] {
   // Pack 16 bits: 5 bits (layers-1) + 11 bits (dataCW-1)
-  const val = ((layers - 1) << 11) | (dataCodewords - 1)
-  const cw0 = (val >> 12) & 0x0F
-  const cw1 = (val >> 8) & 0x0F
-  const cw2 = (val >> 4) & 0x0F
-  const cw3 = val & 0x0F
+  const val = ((layers - 1) << 11) | (dataCodewords - 1);
+  const cw0 = (val >> 12) & 0x0f;
+  const cw1 = (val >> 8) & 0x0f;
+  const cw2 = (val >> 4) & 0x0f;
+  const cw3 = val & 0x0f;
 
-  const ec = rsEncode([cw0, cw1, cw2, cw3], 6, 4)
+  const ec = rsEncode([cw0, cw1, cw2, cw3], 6, 4);
 
   // Convert all 10 codewords to a 40-bit array
-  const bits: number[] = []
+  const bits: number[] = [];
   for (const cw of [cw0, cw1, cw2, cw3, ...ec]) {
     for (let b = 3; b >= 0; b--) {
-      bits.push((cw >> b) & 1)
+      bits.push((cw >> b) & 1);
     }
   }
-  return bits
+  return bits;
 }

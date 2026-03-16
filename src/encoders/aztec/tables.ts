@@ -25,7 +25,7 @@ export const MODE_BITS: Record<Mode, number> = {
   [Mode.Mixed]: 5,
   [Mode.Punct]: 5,
   [Mode.Digit]: 4,
-}
+};
 
 // ---------------------------------------------------------------------------
 // Character-to-codeword value tables for each mode
@@ -96,11 +96,11 @@ const PUNCT_TABLE: Record<string, number> = {
 
 /** Two-character punctuation sequences */
 export const PUNCT_PAIRS: ReadonlyMap<string, number> = new Map([
-  ['\r\n', 2],
-  ['. ', 3],
-  [', ', 4],
-  [': ', 5],
-])
+  ["\r\n", 2],
+  [". ", 3],
+  [", ", 4],
+  [": ", 5],
+]);
 
 /**
  * Digit mode (4-bit codewords)
@@ -121,7 +121,7 @@ export const CHAR_TABLE: ReadonlyArray<Readonly<Record<string, number>>> = [
   MIXED_TABLE,
   PUNCT_TABLE,
   DIGIT_TABLE,
-]
+];
 
 // ---------------------------------------------------------------------------
 // Mode transition (latch & shift) codes
@@ -140,9 +140,9 @@ export const CHAR_TABLE: ReadonlyArray<Readonly<Record<string, number>>> = [
  */
 
 export interface ModeSwitch {
-  codes: number[]
-  modes: Mode[]
-  totalBits: number
+  codes: number[];
+  modes: Mode[];
+  totalBits: number;
 }
 
 /**
@@ -150,7 +150,7 @@ export interface ModeSwitch {
  * Each step is a { code, bitsInCurrentMode } pair.
  */
 export function getLatchSequence(from: Mode, to: Mode): ModeSwitch {
-  if (from === to) return { codes: [], modes: [], totalBits: 0 }
+  if (from === to) return { codes: [], modes: [], totalBits: 0 };
 
   // Direct latches between modes
   // Upper -> Lower: 28 (5 bits)
@@ -162,50 +162,74 @@ export function getLatchSequence(from: Mode, to: Mode): ModeSwitch {
   switch (from) {
     case Mode.Upper:
       switch (to) {
-        case Mode.Lower: return { codes: [28], modes: [Mode.Upper], totalBits: 5 }
-        case Mode.Mixed: return { codes: [29], modes: [Mode.Upper], totalBits: 5 }
-        case Mode.Punct: return { codes: [29, 30], modes: [Mode.Upper, Mode.Mixed], totalBits: 10 }
-        case Mode.Digit: return { codes: [30], modes: [Mode.Upper], totalBits: 5 }
+        case Mode.Lower:
+          return { codes: [28], modes: [Mode.Upper], totalBits: 5 };
+        case Mode.Mixed:
+          return { codes: [29], modes: [Mode.Upper], totalBits: 5 };
+        case Mode.Punct:
+          return { codes: [29, 30], modes: [Mode.Upper, Mode.Mixed], totalBits: 10 };
+        case Mode.Digit:
+          return { codes: [30], modes: [Mode.Upper], totalBits: 5 };
       }
-      break
+      break;
     case Mode.Lower:
       switch (to) {
-        case Mode.Upper: return { codes: [28, 28], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 }
-        case Mode.Mixed: return { codes: [28], modes: [Mode.Lower], totalBits: 5 }
-        case Mode.Punct: return { codes: [28, 30], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 }
-        case Mode.Digit: return { codes: [29], modes: [Mode.Lower], totalBits: 5 }
+        case Mode.Upper:
+          return { codes: [28, 28], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
+        case Mode.Mixed:
+          return { codes: [28], modes: [Mode.Lower], totalBits: 5 };
+        case Mode.Punct:
+          return { codes: [28, 30], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
+        case Mode.Digit:
+          return { codes: [29], modes: [Mode.Lower], totalBits: 5 };
       }
-      break
+      break;
     case Mode.Mixed:
       switch (to) {
-        case Mode.Upper: return { codes: [29], modes: [Mode.Mixed], totalBits: 5 }
-        case Mode.Lower: return { codes: [28], modes: [Mode.Mixed], totalBits: 5 }
-        case Mode.Punct: return { codes: [30], modes: [Mode.Mixed], totalBits: 5 }
-        case Mode.Digit: return { codes: [28, 29], modes: [Mode.Mixed, Mode.Lower], totalBits: 10 }
+        case Mode.Upper:
+          return { codes: [29], modes: [Mode.Mixed], totalBits: 5 };
+        case Mode.Lower:
+          return { codes: [28], modes: [Mode.Mixed], totalBits: 5 };
+        case Mode.Punct:
+          return { codes: [30], modes: [Mode.Mixed], totalBits: 5 };
+        case Mode.Digit:
+          return { codes: [28, 29], modes: [Mode.Mixed, Mode.Lower], totalBits: 10 };
       }
-      break
+      break;
     case Mode.Punct:
       // Punct can only latch back to Upper (code 31)
       switch (to) {
-        case Mode.Upper: return { codes: [31], modes: [Mode.Punct], totalBits: 5 }
-        case Mode.Lower: return { codes: [31, 28], modes: [Mode.Punct, Mode.Upper], totalBits: 10 }
-        case Mode.Mixed: return { codes: [31, 29], modes: [Mode.Punct, Mode.Upper], totalBits: 10 }
-        case Mode.Digit: return { codes: [31, 30], modes: [Mode.Punct, Mode.Upper], totalBits: 10 }
+        case Mode.Upper:
+          return { codes: [31], modes: [Mode.Punct], totalBits: 5 };
+        case Mode.Lower:
+          return { codes: [31, 28], modes: [Mode.Punct, Mode.Upper], totalBits: 10 };
+        case Mode.Mixed:
+          return { codes: [31, 29], modes: [Mode.Punct, Mode.Upper], totalBits: 10 };
+        case Mode.Digit:
+          return { codes: [31, 30], modes: [Mode.Punct, Mode.Upper], totalBits: 10 };
       }
-      break
+      break;
     case Mode.Digit:
       // Digit latch to Upper is code 14 (4 bits)
       switch (to) {
-        case Mode.Upper: return { codes: [14], modes: [Mode.Digit], totalBits: 4 }
-        case Mode.Lower: return { codes: [14, 28], modes: [Mode.Digit, Mode.Upper], totalBits: 9 }
-        case Mode.Mixed: return { codes: [14, 29], modes: [Mode.Digit, Mode.Upper], totalBits: 9 }
-        case Mode.Punct: return { codes: [14, 29, 30], modes: [Mode.Digit, Mode.Upper, Mode.Mixed], totalBits: 14 }
+        case Mode.Upper:
+          return { codes: [14], modes: [Mode.Digit], totalBits: 4 };
+        case Mode.Lower:
+          return { codes: [14, 28], modes: [Mode.Digit, Mode.Upper], totalBits: 9 };
+        case Mode.Mixed:
+          return { codes: [14, 29], modes: [Mode.Digit, Mode.Upper], totalBits: 9 };
+        case Mode.Punct:
+          return {
+            codes: [14, 29, 30],
+            modes: [Mode.Digit, Mode.Upper, Mode.Mixed],
+            totalBits: 14,
+          };
       }
-      break
+      break;
   }
 
   // Should be unreachable
-  return { codes: [], modes: [], totalBits: 0 }
+  return { codes: [], modes: [], totalBits: 0 };
 }
 
 /**
@@ -221,10 +245,10 @@ export const SHIFT_TO_PUNCT: Record<number, number> = {
   [Mode.Upper]: 0,
   [Mode.Lower]: 0,
   [Mode.Mixed]: 0,
-}
+};
 
 /** Shift to Upper from Lower: code 28 */
-export const SHIFT_LOWER_TO_UPPER = 28
+export const SHIFT_LOWER_TO_UPPER = 28;
 
 /** Binary shift code value (from Upper/Lower/Mixed: code 31, from Digit: code 15) */
 export const BINARY_SHIFT: Record<number, { code: number; bits: number }> = {
@@ -232,20 +256,20 @@ export const BINARY_SHIFT: Record<number, { code: number; bits: number }> = {
   [Mode.Lower]: { code: 31, bits: 5 },
   [Mode.Mixed]: { code: 31, bits: 5 },
   [Mode.Digit]: { code: 15, bits: 4 },
-}
+};
 
 // ---------------------------------------------------------------------------
 // Symbol size and capacity tables
 // ---------------------------------------------------------------------------
 
 export interface AztecSize {
-  layers: number
-  compact: boolean
-  modules: number
+  layers: number;
+  compact: boolean;
+  modules: number;
   /** Total data bits available in the data layers (before error correction) */
-  totalBits: number
+  totalBits: number;
   /** Codeword size in bits for this symbol */
-  wordSize: number
+  wordSize: number;
 }
 
 /**
@@ -256,12 +280,12 @@ export interface AztecSize {
  */
 export function getWordSize(layers: number, compact: boolean): number {
   if (compact) {
-    return layers === 1 ? 4 : 6
+    return layers === 1 ? 4 : 6;
   }
-  if (layers <= 2) return 6
-  if (layers <= 8) return 8
-  if (layers <= 22) return 10
-  return 12
+  if (layers <= 2) return 6;
+  if (layers <= 8) return 8;
+  if (layers <= 22) return 10;
+  return 12;
 }
 
 // ---------------------------------------------------------------------------
@@ -330,7 +354,7 @@ export const FULL_TOTAL_BITS: readonly number[] = [
  * Compute the number of modules on each side for a given configuration.
  */
 export function getModuleCount(layers: number, compact: boolean): number {
-  return compact ? 11 + 4 * layers : 15 + 4 * layers
+  return compact ? 11 + 4 * layers : 15 + 4 * layers;
 }
 
 /**
@@ -338,9 +362,9 @@ export function getModuleCount(layers: number, compact: boolean): number {
  */
 export function getTotalBitCapacity(layers: number, compact: boolean): number {
   if (compact) {
-    return COMPACT_TOTAL_BITS[layers - 1]!
+    return COMPACT_TOTAL_BITS[layers - 1]!;
   }
-  return FULL_TOTAL_BITS[layers - 1]!
+  return FULL_TOTAL_BITS[layers - 1]!;
 }
 
 // ---------------------------------------------------------------------------
@@ -349,19 +373,19 @@ export function getTotalBitCapacity(layers: number, compact: boolean): number {
 
 /** Primitive polynomials indexed by word size */
 export const GF_POLY: Record<number, number> = {
-  4: 0x13,    // x^4 + x + 1
-  6: 0x43,    // x^6 + x + 1
-  8: 0x12d,   // x^8 + x^5 + x^3 + x^2 + 1
-  10: 0x409,  // x^10 + x^3 + 1
+  4: 0x13, // x^4 + x + 1
+  6: 0x43, // x^6 + x + 1
+  8: 0x12d, // x^8 + x^5 + x^3 + x^2 + 1
+  10: 0x409, // x^10 + x^3 + 1
   12: 0x1069, // x^12 + x^6 + x^4 + x + 1
-}
+};
 
 // ---------------------------------------------------------------------------
 // Mode message parameters
 // ---------------------------------------------------------------------------
 
 /** Compact mode message: 28 bits total (2 bits layers + 6 bits data codewords + 5 EC bits encoded to 28 via RS) */
-export const COMPACT_MODE_MSG_BITS = 28
+export const COMPACT_MODE_MSG_BITS = 28;
 
 /** Full-range mode message: 40 bits total (5 bits layers + 11 bits data codewords + EC encoded to 40) */
-export const FULL_MODE_MSG_BITS = 40
+export const FULL_MODE_MSG_BITS = 40;

@@ -34,10 +34,10 @@ pdf417("Data", { ecLevel: 4, columns: 5, compact: true });
 const result = encodePDF417("Hello", { ecLevel: 2 });
 ```
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `ecLevel` | `0-8` | `2` | Error correction level |
-| `columns` | `1-30` | auto | Number of data columns |
+| Option    | Type      | Default | Description                         |
+| :-------- | :-------- | :------ | :---------------------------------- |
+| `ecLevel` | `0-8`     | `2`     | Error correction level              |
+| `columns` | `1-30`    | auto    | Number of data columns              |
 | `compact` | `boolean` | `false` | Compact PDF417 (no right indicator) |
 
 Used in: government IDs, transport tickets, shipping labels.
@@ -57,10 +57,10 @@ aztec("Data", { ecPercent: 33, size: 200 });
 const matrix = encodeAztec("Hello", { compact: true });
 ```
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `ecPercent` | `number` | `23` | Error correction percentage |
-| `layers` | `number` | auto | Force specific layer count |
-| `compact` | `boolean` | auto | Compact (1-4 layers) or full-range (1-32) |
+| Option      | Type      | Default | Description                               |
+| :---------- | :-------- | :------ | :---------------------------------------- |
+| `ecPercent` | `number`  | `23`    | Error correction percentage               |
+| `layers`    | `number`  | auto    | Force specific layer count                |
+| `compact`   | `boolean` | auto    | Compact (1-4 layers) or full-range (1-32) |
 
 Used in: boarding passes, transport tickets, healthcare.

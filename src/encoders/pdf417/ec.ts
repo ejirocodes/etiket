@@ -6,7 +6,7 @@
  * EC levels 0-8 produce 2^(level+1) error correction codewords.
  */
 
-const GF_MOD = 929
+const GF_MOD = 929;
 
 /**
  * Get the number of EC codewords for a given EC level.
@@ -15,9 +15,9 @@ const GF_MOD = 929
  */
 export function getECCount(ecLevel: number): number {
   if (ecLevel < 0 || ecLevel > 8) {
-    throw new Error(`PDF417 EC level must be 0-8, got ${ecLevel}`)
+    throw new Error(`PDF417 EC level must be 0-8, got ${ecLevel}`);
   }
-  return 1 << (ecLevel + 1)
+  return 1 << (ecLevel + 1);
 }
 
 /**
@@ -31,55 +31,55 @@ export function getECCount(ecLevel: number): number {
  * @returns Coefficient array [g_k, g_{k-1}, ..., g_1, g_0] where g(x) = g_k*x^k + ... + g_0
  */
 function buildGeneratorPolynomial(ecLevel: number): number[] {
-  const k = getECCount(ecLevel)
+  const k = getECCount(ecLevel);
   // Generator polynomial coefficients, highest degree first
   // Start with g(x) = 1 (i.e., [1])
-  let gen = [1]
+  let gen = [1];
 
   for (let i = 0; i < k; i++) {
     // Multiply gen by (x - 3^i) = (x - alpha^i)
-    const alpha = modPow(3, i, GF_MOD)
-    const newGen = new Array(gen.length + 1).fill(0)
+    const alpha = modPow(3, i, GF_MOD);
+    const newGen = new Array(gen.length + 1).fill(0);
 
     for (let j = 0; j < gen.length; j++) {
       // x * gen[j]
-      newGen[j] = (newGen[j]! + gen[j]!) % GF_MOD
+      newGen[j] = (newGen[j]! + gen[j]!) % GF_MOD;
       // -alpha * gen[j]
-      newGen[j + 1] = (newGen[j + 1]! + GF_MOD - (gen[j]! * alpha) % GF_MOD) % GF_MOD
+      newGen[j + 1] = (newGen[j + 1]! + GF_MOD - ((gen[j]! * alpha) % GF_MOD)) % GF_MOD;
     }
 
-    gen = newGen
+    gen = newGen;
   }
 
-  return gen
+  return gen;
 }
 
 /**
  * Compute base^exp mod modulus using modular exponentiation.
  */
 function modPow(base: number, exp: number, modulus: number): number {
-  let result = 1
-  base = base % modulus
+  let result = 1;
+  base = base % modulus;
   while (exp > 0) {
     if (exp & 1) {
-      result = (result * base) % modulus
+      result = (result * base) % modulus;
     }
-    exp = exp >> 1
-    base = (base * base) % modulus
+    exp = exp >> 1;
+    base = (base * base) % modulus;
   }
-  return result
+  return result;
 }
 
 // Cache generator polynomials per EC level
-const generatorCache: Map<number, number[]> = new Map()
+const generatorCache: Map<number, number[]> = new Map();
 
 function getGenerator(ecLevel: number): number[] {
-  let gen = generatorCache.get(ecLevel)
+  let gen = generatorCache.get(ecLevel);
   if (!gen) {
-    gen = buildGeneratorPolynomial(ecLevel)
-    generatorCache.set(ecLevel, gen)
+    gen = buildGeneratorPolynomial(ecLevel);
+    generatorCache.set(ecLevel, gen);
   }
-  return gen
+  return gen;
 }
 
 /**
@@ -93,28 +93,28 @@ function getGenerator(ecLevel: number): number[] {
  * @returns Array of EC codewords
  */
 export function generateECCodewords(dataCodewords: number[], ecLevel: number): number[] {
-  const gen = getGenerator(ecLevel)
-  const k = getECCount(ecLevel)
+  const gen = getGenerator(ecLevel);
+  const k = getECCount(ecLevel);
 
   // Polynomial long division
   // We compute: data * x^k mod generator
-  const remainder = new Array(k).fill(0)
+  const remainder = new Array(k).fill(0);
 
   for (const cw of dataCodewords) {
-    const t = (cw + remainder[0]!) % GF_MOD
+    const t = (cw + remainder[0]!) % GF_MOD;
     // Shift remainder left by 1
     for (let j = 0; j < k - 1; j++) {
-      remainder[j] = (remainder[j + 1]! + GF_MOD - (t * gen[j + 1]!) % GF_MOD) % GF_MOD
+      remainder[j] = (remainder[j + 1]! + GF_MOD - ((t * gen[j + 1]!) % GF_MOD)) % GF_MOD;
     }
-    remainder[k - 1] = (GF_MOD - (t * gen[k]!) % GF_MOD) % GF_MOD
+    remainder[k - 1] = (GF_MOD - ((t * gen[k]!) % GF_MOD)) % GF_MOD;
   }
 
   // Negate the remainder coefficients (mod 929)
   for (let i = 0; i < k; i++) {
-    remainder[i] = remainder[i] === 0 ? 0 : GF_MOD - remainder[i]!
+    remainder[i] = remainder[i] === 0 ? 0 : GF_MOD - remainder[i]!;
   }
 
-  return remainder
+  return remainder;
 }
 
 /**
@@ -122,9 +122,9 @@ export function generateECCodewords(dataCodewords: number[], ecLevel: number): n
  * From the PDF417 specification.
  */
 export function recommendedECLevel(dataCodewords: number): number {
-  if (dataCodewords <= 40) return 2
-  if (dataCodewords <= 160) return 3
-  if (dataCodewords <= 320) return 4
-  if (dataCodewords <= 863) return 5
-  return 6
+  if (dataCodewords <= 40) return 2;
+  if (dataCodewords <= 160) return 3;
+  if (dataCodewords <= 320) return 4;
+  if (dataCodewords <= 863) return 5;
+  return 6;
 }

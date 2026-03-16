@@ -51,5 +51,5 @@ import { encodeEAN13, encodeEAN8, encodeEAN5, encodeEAN2 } from "etiket";
 const { bars, guards } = encodeEAN13("4006381333931");
 const { bars: bars8, guards: guards8 } = encodeEAN8("96385074");
 const addon5 = encodeEAN5("52495"); // number[]
-const addon2 = encodeEAN2("53");     // number[]
+const addon2 = encodeEAN2("53"); // number[]
 ```

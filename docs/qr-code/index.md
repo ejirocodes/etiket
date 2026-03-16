@@ -13,11 +13,11 @@ qrcode("Hello World", { size: 300 });
 
 ## Error Correction
 
-| Level | Recovery | Best For |
-| :---- | :------- | :------- |
-| `L`   | ~7%      | Maximum data capacity |
-| `M`   | ~15%     | General use (default) |
-| `Q`   | ~25%     | Industrial environments |
+| Level | Recovery | Best For                  |
+| :---- | :------- | :------------------------ |
+| `L`   | ~7%      | Maximum data capacity     |
+| `M`   | ~15%     | General use (default)     |
+| `Q`   | ~25%     | Industrial environments   |
 | `H`   | ~30%     | Required when using logos |
 
 ```ts
@@ -28,11 +28,11 @@ qrcode("data", { ecLevel: "H" });
 
 etiket auto-detects the optimal mode, or you can force one:
 
-| Mode | Characters | Efficiency |
-| :--- | :--------- | :--------- |
-| `numeric` | `0-9` | 3.3 digits/10 bits |
-| `alphanumeric` | `0-9`, `A-Z`, ` $%*+-./:` | 2 chars/11 bits |
-| `byte` | Any (UTF-8) | 1 byte/8 bits |
+| Mode           | Characters                | Efficiency         |
+| :------------- | :------------------------ | :----------------- |
+| `numeric`      | `0-9`                     | 3.3 digits/10 bits |
+| `alphanumeric` | `0-9`, `A-Z`, ` $%*+-./:` | 2 chars/11 bits    |
+| `byte`         | Any (UTF-8)               | 1 byte/8 bits      |
 
 ```ts
 qrcode("12345", { mode: "numeric" });

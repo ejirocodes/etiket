@@ -9,10 +9,10 @@
  */
 
 /** Start pattern: 17 modules — bar,space,bar,space,bar,space,bar,space */
-export const START_PATTERN: readonly number[] = [8, 1, 1, 1, 1, 1, 1, 3]
+export const START_PATTERN: readonly number[] = [8, 1, 1, 1, 1, 1, 1, 3];
 
 /** Stop pattern: 18 modules (includes terminating bar) — bar,space,bar,space,bar,space,bar,space,bar */
-export const STOP_PATTERN: readonly number[] = [7, 1, 1, 1, 1, 1, 1, 2, 1]
+export const STOP_PATTERN: readonly number[] = [7, 1, 1, 1, 1, 1, 1, 2, 1];
 
 /**
  * PDF417 codeword-to-bar/space pattern tables for each cluster.
@@ -35,7 +35,7 @@ export function unpackPattern(packed: number): number[] {
     (packed >>> 8) & 0xf,
     (packed >>> 4) & 0xf,
     packed & 0xf,
-  ]
+  ];
 }
 
 /**
@@ -70,7 +70,7 @@ export function unpackPattern(packed: number): number[] {
  * The patterns are enumerated in a specific canonical order.
  */
 function generateClusterPatterns(clusterMod: number): number[][] {
-  const patterns: number[][] = []
+  const patterns: number[][] = [];
 
   // Enumerate all valid 8-element patterns (b1,s1,b2,s2,b3,s3,b4,s4)
   // where each element is 1..6 and sum = 17
@@ -80,16 +80,16 @@ function generateClusterPatterns(clusterMod: number): number[][] {
         for (let s2 = 1; s2 <= 6; s2++) {
           for (let b3 = 1; b3 <= 6; b3++) {
             for (let s3 = 1; s3 <= 6; s3++) {
-              const remaining = 17 - b1 - s1 - b2 - s2 - b3 - s3
+              const remaining = 17 - b1 - s1 - b2 - s2 - b3 - s3;
               // remaining = b4 + s4, both must be 1..6
               for (let b4 = Math.max(1, remaining - 6); b4 <= Math.min(6, remaining - 1); b4++) {
-                const s4 = remaining - b4
-                if (s4 < 1 || s4 > 6) continue
+                const s4 = remaining - b4;
+                if (s4 < 1 || s4 > 6) continue;
 
                 // Check cluster condition: (b1 - s1 - b2 + s2) mod 9
-                let disc = ((b1 - s1 - b2 + s2) % 9 + 9) % 9
+                let disc = (((b1 - s1 - b2 + s2) % 9) + 9) % 9;
                 if (disc === clusterMod) {
-                  patterns.push([b1, s1, b2, s2, b3, s3, b4, s4])
+                  patterns.push([b1, s1, b2, s2, b3, s3, b4, s4]);
                 }
               }
             }
@@ -104,32 +104,32 @@ function generateClusterPatterns(clusterMod: number): number[][] {
   patterns.sort((a, b) => {
     // Compare in reverse element order
     for (const i of [7, 6, 5, 4, 3, 2, 1, 0]) {
-      if (a[i]! !== b[i]!) return a[i]! - b[i]!
+      if (a[i]! !== b[i]!) return a[i]! - b[i]!;
     }
-    return 0
-  })
+    return 0;
+  });
 
-  return patterns
+  return patterns;
 }
 
 // Precompute cluster pattern tables (lazily)
-let _cluster0: number[][] | null = null
-let _cluster3: number[][] | null = null
-let _cluster6: number[][] | null = null
+let _cluster0: number[][] | null = null;
+let _cluster3: number[][] | null = null;
+let _cluster6: number[][] | null = null;
 
 function getClusterPatterns(cluster: number): number[][] {
   switch (cluster) {
     case 0:
-      if (!_cluster0) _cluster0 = generateClusterPatterns(0)
-      return _cluster0
+      if (!_cluster0) _cluster0 = generateClusterPatterns(0);
+      return _cluster0;
     case 3:
-      if (!_cluster3) _cluster3 = generateClusterPatterns(3)
-      return _cluster3
+      if (!_cluster3) _cluster3 = generateClusterPatterns(3);
+      return _cluster3;
     case 6:
-      if (!_cluster6) _cluster6 = generateClusterPatterns(6)
-      return _cluster6
+      if (!_cluster6) _cluster6 = generateClusterPatterns(6);
+      return _cluster6;
     default:
-      throw new Error(`Invalid cluster: ${cluster}`)
+      throw new Error(`Invalid cluster: ${cluster}`);
   }
 }
 
@@ -140,11 +140,13 @@ function getClusterPatterns(cluster: number): number[][] {
  * @returns Array of 8 bar/space widths totaling 17 modules
  */
 export function getCodewordPattern(codeword: number, cluster: number): number[] {
-  const patterns = getClusterPatterns(cluster)
+  const patterns = getClusterPatterns(cluster);
   if (codeword < 0 || codeword >= patterns.length) {
-    throw new Error(`Codeword ${codeword} out of range for cluster ${cluster} (max ${patterns.length - 1})`)
+    throw new Error(
+      `Codeword ${codeword} out of range for cluster ${cluster} (max ${patterns.length - 1})`,
+    );
   }
-  return patterns[codeword]!
+  return patterns[codeword]!;
 }
 
 /**
@@ -152,7 +154,7 @@ export function getCodewordPattern(codeword: number, cluster: number): number[] 
  * Cluster cycles: row 0 -> cluster 0, row 1 -> cluster 3, row 2 -> cluster 6, row 3 -> cluster 0, etc.
  */
 export function getRowCluster(row: number): number {
-  return (row % 3) * 3
+  return (row % 3) * 3;
 }
 
 // ---- Text compaction sub-mode tables ----
@@ -227,26 +229,26 @@ export const TEXT_SWITCH = {
   // from Alpha
   ALPHA_TO_LOWER: 27,
   ALPHA_TO_MIXED: 28,
-  ALPHA_TO_PUNCT_SHIFT: 29,  // single-char shift to punct
+  ALPHA_TO_PUNCT_SHIFT: 29, // single-char shift to punct
 
   // from Lower
-  LOWER_TO_ALPHA_SHIFT: 27,  // single-char shift to alpha
+  LOWER_TO_ALPHA_SHIFT: 27, // single-char shift to alpha
   LOWER_TO_MIXED: 28,
-  LOWER_TO_PUNCT_SHIFT: 29,  // single-char shift to punct
+  LOWER_TO_PUNCT_SHIFT: 29, // single-char shift to punct
 
   // from Mixed
   MIXED_TO_LOWER: 27,
   MIXED_TO_ALPHA: 28,
-  MIXED_TO_PUNCT: 29,        // latch to punct
+  MIXED_TO_PUNCT: 29, // latch to punct
 
   // from Punct
-  PUNCT_TO_ALPHA: 29,        // latch to alpha
-} as const
+  PUNCT_TO_ALPHA: 29, // latch to alpha
+} as const;
 
 /** High-level mode latch codewords */
 export const MODE_LATCH = {
   TEXT_COMPACTION: 900,
   BYTE_COMPACTION: 901,
   NUMERIC_COMPACTION: 902,
-  BYTE_COMPACTION_6: 924,  // byte compaction, groups of 6
-} as const
+  BYTE_COMPACTION_6: 924, // byte compaction, groups of 6
+} as const;

@@ -61,8 +61,8 @@ try {
 }
 ```
 
-| Error Class | When |
-| :--- | :--- |
-| `InvalidInputError` | Wrong characters, wrong length |
-| `CapacityError` | Data too long for the format |
-| `CheckDigitError` | Check digit verification failed |
+| Error Class         | When                            |
+| :------------------ | :------------------------------ |
+| `InvalidInputError` | Wrong characters, wrong length  |
+| `CapacityError`     | Data too long for the format    |
+| `CheckDigitError`   | Check digit verification failed |

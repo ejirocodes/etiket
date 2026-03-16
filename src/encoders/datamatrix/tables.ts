@@ -4,13 +4,13 @@
  */
 
 export interface SymbolSize {
-  rows: number
-  cols: number
-  dataRegionRows: number
-  dataRegionCols: number
-  totalDataCodewords: number
-  ecCodewords: number
-  interleavedBlocks: number
+  rows: number;
+  cols: number;
+  dataRegionRows: number;
+  dataRegionCols: number;
+  totalDataCodewords: number;
+  ecCodewords: number;
+  interleavedBlocks: number;
 }
 
 // prettier-ignore
@@ -54,10 +54,10 @@ export const SYMBOL_SIZES: readonly SymbolSize[] = [
 export function selectSymbolSize(dataCodewords: number): SymbolSize | undefined {
   for (const size of SYMBOL_SIZES) {
     if (size.totalDataCodewords >= dataCodewords) {
-      return size
+      return size;
     }
   }
-  return undefined
+  return undefined;
 }
 
 /**
@@ -65,8 +65,11 @@ export function selectSymbolSize(dataCodewords: number): SymbolSize | undefined 
  * For symbols larger than a single data region, the matrix is split
  * into multiple data regions separated by alignment patterns.
  */
-export function getDataRegionCount(symbol: SymbolSize): { horizontalRegions: number; verticalRegions: number } {
-  const horizontalRegions = symbol.cols / (symbol.dataRegionCols + 2)
-  const verticalRegions = symbol.rows / (symbol.dataRegionRows + 2)
-  return { horizontalRegions, verticalRegions }
+export function getDataRegionCount(symbol: SymbolSize): {
+  horizontalRegions: number;
+  verticalRegions: number;
+} {
+  const horizontalRegions = symbol.cols / (symbol.dataRegionCols + 2);
+  const verticalRegions = symbol.rows / (symbol.dataRegionRows + 2);
+  return { horizontalRegions, verticalRegions };
 }

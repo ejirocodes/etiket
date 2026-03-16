@@ -13,6 +13,7 @@ barcode("123-456", { type: "code11" });
 Character set: `0-9`, `-`
 
 Check digits are automatic:
+
 - Data length <= 10: one check digit (C)
 - Data length > 10: two check digits (C + K)
 
