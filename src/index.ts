@@ -63,6 +63,8 @@ export interface BarcodeOptions extends BarcodeSVGOptions {
   /** Codabar start/stop characters */
   codabarStart?: string;
   codabarStop?: string;
+  /** Force Code 128 charset (A, B, or C). Only used when type is 'code128'. Defaults to 'auto'. */
+  code128Charset?: "auto" | "A" | "B" | "C";
 }
 
 export type { BarcodeSVGOptions, QRCodeSVGOptions, QRCodeOptions };
@@ -109,6 +111,7 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
     code39CheckDigit,
     codabarStart,
     codabarStop,
+    code128Charset,
     ...svgOptions
   } = options;
 
@@ -116,7 +119,7 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
 
   switch (type) {
     case "code128":
-      bars = encodeCode128(text);
+      bars = encodeCode128(text, { charset: code128Charset });
       break;
     case "ean13":
       bars = encodeEAN13(text).bars;
@@ -315,11 +318,17 @@ export function aztec(
 export function wifi(
   ssid: string,
   password: string,
-  options?: QRCodeSVGOptions & QRCodeOptions,
+  options?: QRCodeSVGOptions &
+    QRCodeOptions & {
+      encryption?: "WPA" | "WEP" | "nopass";
+      hidden?: boolean;
+    },
 ): string {
-  const encryption = "WPA";
-  const text = `WIFI:T:${encryption};S:${escapeWifi(ssid)};P:${escapeWifi(password)};;`;
-  return qrcode(text, options);
+  const { encryption = "WPA", hidden, ...qrOpts } = options ?? {};
+  let text = `WIFI:T:${encryption};S:${escapeWifi(ssid)};P:${escapeWifi(password)};`;
+  if (hidden) text += "H:true;";
+  text += ";";
+  return qrcode(text, qrOpts);
 }
 
 /**
@@ -448,8 +457,154 @@ function escapeWifi(str: string): string {
   return str.replace(/([\\;,:"'])/g, "\\$1");
 }
 
+// --- Unified encode() function for raw output ---
+
+/** Supported types for the unified encode() function */
+export type EncodeType = BarcodeType | "qr" | "datamatrix" | "pdf417" | "aztec";
+
+/** Options for the unified encode() function */
+export interface EncodeOptions {
+  /** The barcode/matrix type. Defaults to 'code128'. */
+  type?: EncodeType;
+  /** Force Code 128 charset (only used when type is 'code128'). */
+  code128Charset?: "auto" | "A" | "B" | "C";
+  /** MSI check digit type (only used when type is 'msi'). */
+  msiCheckDigit?: "mod10" | "mod11" | "mod1010" | "mod1110" | "none";
+  /** Code 39 check digit (only used when type is 'code39' or 'code39ext'). */
+  code39CheckDigit?: boolean;
+  /** Codabar start character (only used when type is 'codabar'). */
+  codabarStart?: string;
+  /** Codabar stop character (only used when type is 'codabar'). */
+  codabarStop?: string;
+}
+
+/** Result from encoding a 1D barcode */
+export interface Encode1DResult {
+  type: "1d";
+  bars: number[];
+}
+
+/** Result from encoding a 2D matrix code */
+export interface Encode2DResult {
+  type: "2d";
+  matrix: boolean[][];
+}
+
+/** Result from the unified encode() function */
+export type EncodeResult = Encode1DResult | Encode2DResult;
+
+/**
+ * Encode text into raw barcode/matrix data without rendering
+ *
+ * Returns raw encoding data suitable for custom rendering:
+ * - For 1D barcodes: `{ type: '1d', bars: number[] }` (bar widths)
+ * - For 2D codes (QR, Data Matrix, PDF417, Aztec): `{ type: '2d', matrix: boolean[][] }`
+ *
+ * @param text - The text/data to encode
+ * @param options - Encoding options (type, charset, etc.)
+ * @returns Raw encoding result
+ *
+ * @example
+ * ```ts
+ * // Default Code 128
+ * const result = encode('Hello')
+ * // result.type === '1d', result.bars === [2, 1, 1, 2, ...]
+ *
+ * // QR code
+ * const qr = encode('https://example.com', { type: 'qr' })
+ * // qr.type === '2d', qr.matrix === [[true, false, ...], ...]
+ * ```
+ */
+export function encode(text: string, options: EncodeOptions = {}): EncodeResult {
+  const {
+    type = "code128",
+    code128Charset,
+    msiCheckDigit,
+    code39CheckDigit,
+    codabarStart,
+    codabarStop,
+  } = options;
+
+  // 2D types
+  switch (type) {
+    case "qr":
+      return { type: "2d", matrix: encodeQR(text) };
+    case "datamatrix":
+      return { type: "2d", matrix: encodeDataMatrix(text) };
+    case "pdf417":
+      return { type: "2d", matrix: encodePDF417(text).matrix };
+    case "aztec":
+      return { type: "2d", matrix: encodeAztec(text) };
+  }
+
+  // 1D types
+  let bars: number[];
+
+  switch (type) {
+    case "code128":
+      bars = encodeCode128(text, { charset: code128Charset });
+      break;
+    case "ean13":
+      bars = encodeEAN13(text).bars;
+      break;
+    case "ean8":
+      bars = encodeEAN8(text).bars;
+      break;
+    case "code39":
+      bars = encodeCode39(text, { checkDigit: code39CheckDigit });
+      break;
+    case "code39ext":
+      bars = encodeCode39Extended(text, { checkDigit: code39CheckDigit });
+      break;
+    case "code93":
+      bars = encodeCode93(text);
+      break;
+    case "code93ext":
+      bars = encodeCode93Extended(text);
+      break;
+    case "itf":
+      bars = encodeITF(text);
+      break;
+    case "itf14":
+      bars = encodeITF14(text);
+      break;
+    case "upca":
+      bars = encodeUPCA(text).bars;
+      break;
+    case "upce":
+      bars = encodeUPCE(text).bars;
+      break;
+    case "ean2":
+      bars = encodeEAN2(text);
+      break;
+    case "ean5":
+      bars = encodeEAN5(text);
+      break;
+    case "codabar":
+      bars = encodeCodabar(text, { start: codabarStart, stop: codabarStop });
+      break;
+    case "msi":
+      bars = encodeMSI(text, { checkDigit: msiCheckDigit });
+      break;
+    case "pharmacode":
+      bars = encodePharmacode(Number(text));
+      break;
+    case "code11":
+      bars = encodeCode11(text);
+      break;
+    case "gs1-128":
+      bars = encodeGS1128(text);
+      break;
+    default:
+      throw new Error(`Unsupported encode type: ${type}`);
+  }
+
+  return { type: "1d", bars };
+}
+
 // Re-export encoders for advanced usage
 export { encodeCode128 } from "./encoders/code128";
+export type { Code128Charset, Code128Options } from "./encoders/code128";
 export { encodeEAN13, encodeEAN8 } from "./encoders/ean";
 export { encodeQR } from "./encoders/qr/index";
 export { encodeCode39, encodeCode39Extended } from "./encoders/code39";
@@ -486,4 +641,6 @@ export {
   calculateEANCheckDigit,
   verifyEANCheckDigit,
   validateQRInput,
+  validateBarcodeInput,
 } from "./validators/index";
+export type { QRValidationResult } from "./validators/index";

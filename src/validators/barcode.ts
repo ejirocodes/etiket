@@ -176,3 +176,75 @@ export function validateBarcode(text: string, type: string): { valid: boolean; e
 export function isValidInput(text: string, type: string): boolean {
   return validateBarcode(text, type).valid;
 }
+
+/**
+ * Calculate ITF-14 check digit (mod 10, weights starting at 3)
+ */
+function calculateITF14CheckDigit(digits: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    sum += digits[i]! * (i % 2 === 0 ? 3 : 1);
+  }
+  return (10 - (sum % 10)) % 10;
+}
+
+/**
+ * Calculate UPC-A check digit (mod 10, weights starting at 3)
+ */
+function calculateUPCACheckDigit(digits: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    sum += digits[i]! * (i % 2 === 0 ? 3 : 1);
+  }
+  return (10 - (sum % 10)) % 10;
+}
+
+/**
+ * Validate barcode input and return metadata including check digit where applicable.
+ *
+ * Reuses `validateBarcode` for basic validation, then computes the check digit
+ * for barcode types that support it (EAN-13, EAN-8, UPC-A, ITF-14).
+ */
+export function validateBarcodeInput(
+  text: string,
+  type: string,
+): { valid: boolean; error?: string; checkDigit?: number } {
+  const result = validateBarcode(text, type);
+  if (!result.valid) {
+    return result;
+  }
+
+  // Compute check digit for types that support it
+  switch (type) {
+    case "ean13": {
+      const digits = text.replace(/\D/g, "").split("").map(Number);
+      const dataDigits = digits.slice(0, 12);
+      const checkDigit = calculateEANCheckDigit(dataDigits);
+      return { valid: true, checkDigit };
+    }
+
+    case "ean8": {
+      const digits = text.replace(/\D/g, "").split("").map(Number);
+      const dataDigits = digits.slice(0, 7);
+      const checkDigit = calculateEANCheckDigit(dataDigits);
+      return { valid: true, checkDigit };
+    }
+
+    case "upca": {
+      const digits = text.replace(/\D/g, "").split("").map(Number);
+      const dataDigits = digits.slice(0, 11);
+      const checkDigit = calculateUPCACheckDigit(dataDigits);
+      return { valid: true, checkDigit };
+    }
+
+    case "itf14": {
+      const digits = text.replace(/\D/g, "").split("").map(Number);
+      const dataDigits = digits.slice(0, 13);
+      const checkDigit = calculateITF14CheckDigit(dataDigits);
+      return { valid: true, checkDigit };
+    }
+
+    default:
+      return { valid: true };
+  }
+}
