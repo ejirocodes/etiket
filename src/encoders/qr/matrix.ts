@@ -78,12 +78,16 @@ function placeTiming(matrix: Module[][], size: number): void {
 function placeAlignmentPatterns(matrix: Module[][], version: number): void {
   if (version < 2) return;
   const positions = ALIGNMENT_POSITIONS[version - 1]!;
+  const last = positions.length - 1;
 
-  for (const row of positions) {
-    for (const col of positions) {
-      // Skip if overlapping with finder patterns
-      if (matrix[row]![col] !== null) continue;
-      placeAlignment(matrix, row, col);
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = 0; j < positions.length; j++) {
+      // Skip positions that overlap with finder patterns:
+      // top-left (first,first), top-right (first,last), bottom-left (last,first)
+      if (i === 0 && j === 0) continue;
+      if (i === 0 && j === last) continue;
+      if (i === last && j === 0) continue;
+      placeAlignment(matrix, positions[i]!, positions[j]!);
     }
   }
 }
