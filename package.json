@@ -42,7 +42,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "docs:dev": "npx mdzilla ./docs",
-    "release": "pnpm test && pnpm build && changelogen --release && npm publish && git push --follow-tags",
+    "bumpp": "bumpp package.json",
+    "release": "pnpm build && pnpm bumpp",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
@@ -84,6 +85,8 @@
     "url": "https://github.com/productdevbook/etiket/issues"
   },
   "devDependencies": {
+    "bumpp": "latest",
+    "changelogen": "latest",
     "oxlint": "latest",
     "tsdown": "latest",
     "typescript": "latest",
