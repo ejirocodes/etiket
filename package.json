@@ -76,7 +76,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "obuild",
     "dev": "tsdown --watch",
     "lint": "oxlint . && oxfmt --check .",
     "lint:fix": "oxlint . --fix && oxfmt .",
@@ -95,10 +95,9 @@
     "changelogen": "latest",
     "citty": "^0.2.1",
     "consola": "^3.4.2",
+    "obuild": "^0.4.32",
     "oxfmt": "^0.40.0",
     "oxlint": "latest",
-    "publint": "^0.3.18",
-    "tsdown": "latest",
     "typescript": "latest",
     "vitest": "latest"
   }
