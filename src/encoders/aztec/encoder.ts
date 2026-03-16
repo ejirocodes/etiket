@@ -334,95 +334,73 @@ export function bitsToCodewords(bits: number[], wordSize: number): number[] {
 
 /**
  * Stuff bits to avoid all-zero or all-one codewords.
- * In Aztec, if a codeword would be all 0s, the last bit is flipped to 1,
- * and if it would be all 1s, the last bit is flipped to 0.
- * This is done BEFORE Reed-Solomon encoding.
  *
- * Actually the spec uses a different approach: "bit stuffing" inserts an
- * extra complement bit after every (wordSize-1) consecutive same-value bits.
- * For simplicity in this initial implementation, we perform the simpler
- * codeword-level check described above.
+ * Scans the input in wordSize-bit windows. For each window:
+ * - If the top (wordSize-1) bits are all 1: output them + a 0 (drop last input bit
+ *   and re-process it in the next window).
+ * - If the top (wordSize-1) bits are all 0: force the last bit to 1 (drop last input
+ *   bit and re-process it).
+ * - Otherwise: output the full wordSize bits normally.
  *
- * Full bit-stuffing per the spec: after encoding data bits, scan through in
- * wordSize-bit groups. If the first (wordSize-1) bits of a group are all 0,
- * insert a 1-bit; if all 1, insert a 0-bit. This changes the total length.
- *
- * We implement the full bit-stuffing approach for correctness.
+ * Matches the ZXing reference implementation exactly.
  */
 export function stuffBits(bits: number[], wordSize: number): number[] {
   const result: number[] = [];
-  const mask = (1 << (wordSize - 1)) - 1; // all 1s for (wordSize-1) bits
+  const n = bits.length;
+  const mask = (1 << wordSize) - 2; // e.g., for ws=6: 0b111110
 
-  let i = 0;
-  while (i < bits.length) {
-    // Read wordSize bits (or fewer at the end)
+  for (let i = 0; i < n; i += wordSize) {
     let word = 0;
-    const end = Math.min(i + wordSize, bits.length);
-    for (let j = i; j < end; j++) {
-      word = (word << 1) | bits[j]!;
-    }
-    // Pad incomplete word with 1-bits for checking
-    const bitsRead = end - i;
-    if (bitsRead < wordSize) {
-      word = word << (wordSize - bitsRead);
-      word |= (1 << (wordSize - bitsRead)) - 1;
+    for (let j = 0; j < wordSize; j++) {
+      if (i + j >= n || bits[i + j]!) {
+        word |= 1 << (wordSize - 1 - j);
+      }
     }
 
-    // Check the first (wordSize-1) bits
-    const top = word >> 1;
-    if (top === 0) {
-      // First (wordSize-1) bits are all 0 — output them plus a stuff bit of 1
-      for (let j = i; j < i + wordSize - 1 && j < bits.length; j++) {
-        result.push(bits[j]!);
-      }
-      result.push(1);
-    } else if (top === mask) {
-      // First (wordSize-1) bits are all 1 — output them plus a stuff bit of 0
-      for (let j = i; j < i + wordSize - 1 && j < bits.length; j++) {
-        result.push(bits[j]!);
-      }
-      result.push(0);
+    if ((word & mask) === mask) {
+      // Top (wordSize-1) bits are all 1: output word with last bit forced to 0
+      pushBitsFromValue(result, word & mask, wordSize);
+      i--; // re-process the dropped last bit
+    } else if ((word & mask) === 0) {
+      // Top (wordSize-1) bits are all 0: output word with last bit forced to 1
+      pushBitsFromValue(result, word | 1, wordSize);
+      i--; // re-process the dropped last bit
     } else {
-      // Normal codeword — output all bits
-      for (let j = i; j < end; j++) {
-        result.push(bits[j]!);
-      }
+      pushBitsFromValue(result, word, wordSize);
     }
-
-    i += top === 0 || top === mask ? wordSize - 1 : wordSize;
   }
 
   return result;
 }
 
+/** Push a value as wordSize bits (MSB first) into a result array */
+function pushBitsFromValue(result: number[], value: number, wordSize: number): void {
+  for (let b = wordSize - 1; b >= 0; b--) {
+    result.push((value >> b) & 1);
+  }
+}
+
 /**
- * Pad the bit stream to fill the available capacity.
- * Padding uses 1-bits up to the next codeword boundary,
- * then fills remaining codewords with the pattern specified
- * by the spec (typically alternating high-bit values).
+ * Convert stuffed bits into an array of codewords, filling remaining capacity.
+ *
+ * Per the ZXing reference implementation:
+ * 1. Read stuffed bits into the first N codewords of a totalWords-sized array.
+ * 2. The remaining positions are left as 0 (will be filled by RS encoding).
+ *
+ * @param stuffedBits - The stuffed bit array
+ * @param wordSize - Codeword size in bits
+ * @param totalWords - Total number of codewords (data + EC)
+ * @returns Array of totalWords codewords, with data in first positions
  */
-export function padBits(bits: number[], totalBits: number, wordSize: number): number[] {
-  const result = [...bits];
-
-  // Pad to codeword boundary with 1s
-  while (result.length % wordSize !== 0 && result.length < totalBits) {
-    result.push(1);
-  }
-
-  // Fill remaining capacity with properly stuffed padding codewords
-  // Each padding codeword is all-zeros, but after bit-stuffing it becomes
-  // (wordSize-1) zero bits followed by a 1 bit (to avoid all-zero codeword)
-  while (result.length + wordSize <= totalBits) {
-    for (let i = 0; i < wordSize - 1; i++) {
-      result.push(0);
+export function bitsToWords(stuffedBits: number[], wordSize: number, totalWords: number): number[] {
+  const message = new Array<number>(totalWords).fill(0);
+  const n = Math.floor(stuffedBits.length / wordSize);
+  for (let i = 0; i < n; i++) {
+    let value = 0;
+    for (let j = 0; j < wordSize; j++) {
+      value |= (stuffedBits[i * wordSize + j]! ? 1 : 0) << (wordSize - j - 1);
     }
-    result.push(1); // stuff bit to avoid all-zero codeword
+    message[i] = value;
   }
-
-  // Fill any remaining bits with zeros
-  while (result.length < totalBits) {
-    result.push(0);
-  }
-
-  return result.slice(0, totalBits);
+  return message;
 }

@@ -8,13 +8,19 @@
  * - 5 text encoding modes (Upper, Lower, Mixed, Punctuation, Digit) + Binary Shift
  * - Reed-Solomon error correction with variable GF sizes
  * - Bullseye finder pattern at center (no quiet zone required)
- * - Compact mode (15x15 to 27x27) and full-range mode (19x19 to 143x143)
+ * - Compact mode (15x15 to 27x27) and full-range mode (19x19 to 151x151)
+ *
+ * Implementation follows the ZXing reference encoder for correctness.
  */
 
 import { CapacityError, InvalidInputError } from "../../errors";
-import { getWordSize, getModuleCount, getTotalBitCapacity } from "./tables";
-import { encodeHighLevel, bitsToCodewords, stuffBits, padBits } from "./encoder";
-import { rsEncode, encodeCompactModeMessage, encodeFullModeMessage } from "./reed-solomon";
+import { getWordSize, getModuleCount, getTotalBitCapacity, getBaseMatrixSize } from "./tables";
+import { encodeHighLevel, stuffBits } from "./encoder";
+import {
+  generateCheckWords,
+  encodeCompactModeMessage,
+  encodeFullModeMessage,
+} from "./reed-solomon";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -46,264 +52,246 @@ export function encodeAztec(text: string, options: AztecOptions = {}): boolean[]
   // Step 1: Encode text into a bit stream
   const dataBits = encodeHighLevel(text);
 
-  // Step 2: Select symbol size
-  const { layers, compact } = selectSize(dataBits.length, ecPercent, options);
+  // Step 2: Compute minimum EC bits
+  const eccBits = Math.floor((dataBits.length * ecPercent) / 100) + 11;
+  const totalSizeBits = dataBits.length + eccBits;
 
-  const wordSize = getWordSize(layers, compact);
-  const totalBitCapacity = getTotalBitCapacity(layers, compact);
-  const totalCodewords = Math.floor(totalBitCapacity / wordSize);
+  // Step 3: Select symbol size
+  const { layers, compact, wordSize, totalBitsInLayer, stuffedBits } = selectSize(
+    dataBits,
+    totalSizeBits,
+    eccBits,
+    options,
+  );
 
-  // Step 3: Compute EC codeword count
-  const ecCodewords = computeECCount(totalCodewords, dataBits.length, wordSize, ecPercent);
-  const dataCodewords = totalCodewords - ecCodewords;
+  // Step 4: Generate check words (data + EC as a single bit stream)
+  const messageBits = generateCheckWords(stuffedBits, totalBitsInLayer, wordSize);
 
-  // Step 4: Stuff bits and convert to codewords
-  const stuffed = stuffBits(dataBits, wordSize);
-  const padded = padBits(stuffed, dataCodewords * wordSize, wordSize);
-  const dataCW = bitsToCodewords(padded, wordSize);
+  // Step 5: Compute messageSizeInWords for the mode message
+  const messageSizeInWords = Math.floor(stuffedBits.length / wordSize);
 
-  // Step 5: Generate Reed-Solomon EC codewords
-  const ecCW = rsEncode(dataCW, ecCodewords, wordSize);
+  // Step 6: Build the mode message
+  const modeMessage = compact
+    ? encodeCompactModeMessage(layers, messageSizeInWords)
+    : encodeFullModeMessage(layers, messageSizeInWords);
 
-  // Step 6: Combine data + EC and convert to bits for placement
-  const allCW = [...dataCW, ...ecCW];
-  const allBits: number[] = [];
-  for (const cw of allCW) {
-    for (let b = wordSize - 1; b >= 0; b--) {
-      allBits.push((cw >> b) & 1);
-    }
-  }
+  // Step 7: Build the alignment map and matrix
+  const baseMatrixSize = getBaseMatrixSize(layers, compact);
+  const matrixSize = getModuleCount(layers, compact);
 
-  // Step 7: Build the mode message
-  const modeMsg = compact
-    ? encodeCompactModeMessage(layers, dataCodewords)
-    : encodeFullModeMessage(layers, dataCodewords);
+  const alignmentMap = buildAlignmentMap(baseMatrixSize, matrixSize, compact);
 
-  // Step 8: Build the matrix
-  const moduleCount = getModuleCount(layers, compact);
-  const matrix = createCellMatrix(moduleCount);
+  // Step 8: Create the matrix and place data
+  const matrix = createBoolMatrix(matrixSize);
 
-  // Place bullseye finder pattern at center
-  placeBullseye(matrix, compact);
+  // Place data layers (done first; function patterns are drawn on top)
+  placeDataLayers(matrix, messageBits, layers, compact, baseMatrixSize, alignmentMap);
 
-  // Place orientation marks on the outermost ring of the core
-  placeOrientation(matrix, compact);
+  // Draw mode message around the core
+  drawModeMessage(matrix, modeMessage, compact, matrixSize);
 
-  // Place reference grid (full-range only — must be before data placement)
+  // Draw bullseye and orientation marks (drawn last, on top of everything)
+  drawBullsEye(matrix, Math.floor(matrixSize / 2), compact ? 5 : 7);
+
+  // Draw reference grid for full-range symbols
   if (!compact) {
-    placeReferenceGrid(matrix, moduleCount);
+    drawReferenceGrid(matrix, baseMatrixSize, matrixSize);
   }
 
-  // Place mode message around the bullseye
-  placeModeMessage(matrix, modeMsg, compact);
-
-  // Place data bits in layers
-  placeDataLayers(matrix, allBits, layers, compact);
-
-  // Convert Cell[][] to boolean[][]
-  return matrix.map((row) => row.map((cell) => cell === 1));
+  return matrix;
 }
 
 // ---------------------------------------------------------------------------
-// Size selection
+// Size selection — matches ZXing's approach
 // ---------------------------------------------------------------------------
+
+interface SizeResult {
+  layers: number;
+  compact: boolean;
+  wordSize: number;
+  totalBitsInLayer: number;
+  stuffedBits: number[];
+}
 
 /**
  * Select the smallest symbol that fits the data with the requested EC level.
+ * Matches the ZXing encoder's size selection algorithm.
  */
 function selectSize(
-  dataBitCount: number,
-  ecPercent: number,
+  dataBits: number[],
+  totalSizeBits: number,
+  eccBits: number,
   options: AztecOptions,
-): { layers: number; compact: boolean } {
-  // If layers/compact are forced, validate and return
+): SizeResult {
+  const MAX_NB_BITS = 32;
+
   if (options.layers !== undefined) {
     const compact = options.compact ?? options.layers <= 4;
-    const wordSize = getWordSize(options.layers, compact);
-    const totalBits = getTotalBitCapacity(options.layers, compact);
-    const totalCW = Math.floor(totalBits / wordSize);
-    const ecCW = computeECCount(totalCW, dataBitCount, wordSize, ecPercent);
-    const dataCW = totalCW - ecCW;
-    if (dataCW * wordSize < dataBitCount) {
+    const layers = options.layers;
+    const totalBitsInLayer = getTotalBitCapacity(layers, compact);
+    const wordSize = getWordSize(layers);
+    const usableBitsInLayers = totalBitsInLayer - (totalBitsInLayer % wordSize);
+    const stuffedBits = stuffBits(dataBits, wordSize);
+    if (stuffedBits.length + eccBits > usableBitsInLayers) {
       throw new CapacityError(
-        `Aztec Code: data (${dataBitCount} bits) exceeds capacity of ` +
-          `${compact ? "compact" : "full"} ${options.layers}-layer symbol`,
+        `Aztec Code: data exceeds capacity of ${compact ? "compact" : "full"} ${layers}-layer symbol`,
       );
     }
-    return { layers: options.layers, compact };
+    if (compact && stuffedBits.length > wordSize * 64) {
+      throw new CapacityError(
+        `Aztec Code: data exceeds capacity of compact ${layers}-layer symbol`,
+      );
+    }
+    return { layers, compact, wordSize, totalBitsInLayer, stuffedBits };
   }
 
-  // Try compact first (layers 1-4)
-  if (options.compact !== false) {
-    for (let layers = 1; layers <= 4; layers++) {
-      if (canFit(dataBitCount, layers, true, ecPercent)) {
-        return { layers, compact: true };
-      }
+  let wordSize = 0;
+  let stuffedBits: number[] | null = null;
+
+  for (let i = 0; ; i++) {
+    if (i > MAX_NB_BITS) {
+      throw new CapacityError(
+        `Aztec Code: data (${dataBits.length} bits) exceeds maximum capacity`,
+      );
+    }
+
+    const compact = i <= 3;
+    const layers = compact ? i + 1 : i;
+    const totalBitsInLayer = getTotalBitCapacity(layers, compact);
+
+    if (totalSizeBits > totalBitsInLayer) {
+      continue;
+    }
+
+    const newWordSize = getWordSize(layers);
+    if (stuffedBits === null || wordSize !== newWordSize) {
+      wordSize = newWordSize;
+      stuffedBits = stuffBits(dataBits, wordSize);
+    }
+
+    const usableBitsInLayers = totalBitsInLayer - (totalBitsInLayer % wordSize);
+
+    if (compact && stuffedBits.length > wordSize * 64) {
+      continue;
+    }
+
+    if (stuffedBits.length + eccBits <= usableBitsInLayers) {
+      // Check if compact is explicitly excluded
+      if (compact && options.compact === false) continue;
+      if (!compact && options.compact === true) continue;
+
+      return {
+        layers,
+        compact,
+        wordSize,
+        totalBitsInLayer,
+        stuffedBits,
+      };
     }
   }
-
-  // Try full-range (layers 1-32)
-  if (options.compact !== true) {
-    for (let layers = 1; layers <= 32; layers++) {
-      if (canFit(dataBitCount, layers, false, ecPercent)) {
-        return { layers, compact: false };
-      }
-    }
-  }
-
-  throw new CapacityError(`Aztec Code: data (${dataBitCount} bits) exceeds maximum capacity`);
 }
 
-/** Check whether data fits in a given symbol configuration */
-function canFit(
-  dataBitCount: number,
+// ---------------------------------------------------------------------------
+// Matrix construction
+// ---------------------------------------------------------------------------
+
+/** Create a boolean matrix initialized to all false */
+function createBoolMatrix(size: number): boolean[][] {
+  return Array.from({ length: size }, () => new Array<boolean>(size).fill(false));
+}
+
+// ---------------------------------------------------------------------------
+// Alignment map — maps base coordinates to final matrix coordinates
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the alignment map that translates logical (base matrix) coordinates
+ * to physical (final matrix) coordinates.
+ *
+ * For compact mode, this is an identity mapping.
+ * For full-range mode, reference grid lines are inserted every 15 rows/cols
+ * from the center, which shifts coordinate positions.
+ */
+function buildAlignmentMap(baseMatrixSize: number, matrixSize: number, compact: boolean): number[] {
+  const alignmentMap = new Array<number>(baseMatrixSize);
+
+  if (compact) {
+    for (let i = 0; i < baseMatrixSize; i++) {
+      alignmentMap[i] = i;
+    }
+  } else {
+    const origCenter = Math.floor(baseMatrixSize / 2);
+    const center = Math.floor(matrixSize / 2);
+
+    for (let i = 0; i < origCenter; i++) {
+      const newOffset = i + Math.floor(i / 15);
+      alignmentMap[origCenter - i - 1] = center - newOffset - 1;
+      alignmentMap[origCenter + i] = center + newOffset + 1;
+    }
+  }
+
+  return alignmentMap;
+}
+
+// ---------------------------------------------------------------------------
+// Data layer placement — ZXing's 4-quadrant algorithm
+// ---------------------------------------------------------------------------
+
+/**
+ * Place data bits into layers using the ZXing 4-quadrant algorithm.
+ *
+ * For each layer i (0-indexed, starting from outermost):
+ *   rowSize = (layers - i) * 4 + (compact ? 9 : 12)
+ *
+ * Each layer is split into 4 sides (quadrants), each using rowSize * 2 bits.
+ * The 4 quadrants are: top, right, bottom, left.
+ * Within each quadrant, bits are placed in pairs (outer module, inner module)
+ * for each position along the side.
+ */
+function placeDataLayers(
+  matrix: boolean[][],
+  messageBits: number[],
   layers: number,
   compact: boolean,
-  ecPercent: number,
-): boolean {
-  const wordSize = getWordSize(layers, compact);
-  const totalBits = getTotalBitCapacity(layers, compact);
-  const totalCW = Math.floor(totalBits / wordSize);
-  const ecCW = computeECCount(totalCW, dataBitCount, wordSize, ecPercent);
-  const dataCW = totalCW - ecCW;
-  return dataCW * wordSize >= dataBitCount;
-}
+  baseMatrixSize: number,
+  alignmentMap: number[],
+): void {
+  let rowOffset = 0;
 
-/** Compute the number of EC codewords for a given configuration */
-function computeECCount(
-  totalCodewords: number,
-  dataBitCount: number,
-  wordSize: number,
-  ecPercent: number,
-): number {
-  const dataCodewordsNeeded = Math.ceil(dataBitCount / wordSize);
-  const ecFromCapacity = totalCodewords - dataCodewordsNeeded;
-  const minEC = Math.ceil((totalCodewords * ecPercent) / 100);
-  // Use whichever is larger: the EC from remaining capacity or the minimum EC %
-  const ec = Math.max(minEC, Math.min(ecFromCapacity, totalCodewords - 1));
-  // Reed-Solomon needs at least 1 EC codeword to be meaningful
-  return Math.max(ec, Math.min(3, totalCodewords - 1));
-}
+  for (let i = 0; i < layers; i++) {
+    const rowSize = (layers - i) * 4 + (compact ? 9 : 12);
 
-// ---------------------------------------------------------------------------
-// Matrix cell type and construction
-// ---------------------------------------------------------------------------
+    for (let j = 0; j < rowSize; j++) {
+      const columnOffset = j * 2;
 
-/**
- * Cell states:
- *  -1 = unset (available for data)
- *   0 = light (function pattern)
- *   1 = dark  (function pattern)
- */
-type Cell = -1 | 0 | 1;
+      for (let k = 0; k < 2; k++) {
+        // ZXing: set(x, y) where x=col, y=row -> matrix[y][x] = matrix[row][col]
+        // Top side: set(alignmentMap[i*2+k], alignmentMap[i*2+j])
+        if (messageBits[rowOffset + columnOffset + k]) {
+          matrix[alignmentMap[i * 2 + j]!]![alignmentMap[i * 2 + k]!] = true;
+        }
 
-/** Create an empty matrix filled with -1 (unset) */
-function createCellMatrix(size: number): Cell[][] {
-  return Array.from({ length: size }, () => Array.from<Cell>({ length: size }).fill(-1));
-}
+        // Right side: set(alignmentMap[i*2+j], alignmentMap[base-1-i*2-k])
+        if (messageBits[rowOffset + rowSize * 2 + columnOffset + k]) {
+          matrix[alignmentMap[baseMatrixSize - 1 - i * 2 - k]!]![alignmentMap[i * 2 + j]!] = true;
+        }
 
-// ---------------------------------------------------------------------------
-// Bullseye finder pattern
-// ---------------------------------------------------------------------------
+        // Bottom side: set(alignmentMap[base-1-i*2-k], alignmentMap[base-1-i*2-j])
+        if (messageBits[rowOffset + rowSize * 4 + columnOffset + k]) {
+          matrix[alignmentMap[baseMatrixSize - 1 - i * 2 - j]!]![
+            alignmentMap[baseMatrixSize - 1 - i * 2 - k]!
+          ] = true;
+        }
 
-/**
- * Place the concentric-square bullseye at the center of the matrix.
- *
- * The bullseye alternates dark/light from the center outward:
- *   distance 0 (center): dark
- *   distance 1:          light  (3x3 border)
- *   distance 2:          dark   (5x5 border)
- *   distance 3:          light  (7x7 border)
- *   distance 4:          dark   (9x9 border)
- *   (full only:)
- *   distance 5:          light  (11x11 border)
- *   distance 6:          dark   (13x13 border)
- *
- * Compact: 9x9 bullseye (distances 0-4), core = 11x11
- * Full:    13x13 bullseye (distances 0-6), core = 15x15
- */
-function placeBullseye(matrix: Cell[][], compact: boolean): void {
-  const size = matrix.length;
-  const center = Math.floor(size / 2);
-  // The bullseye rings go out to distance 4 (compact) or 6 (full)
-  const maxDist = compact ? 4 : 6;
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const dist = Math.max(Math.abs(r - center), Math.abs(c - center));
-      if (dist <= maxDist) {
-        matrix[r]![c] = dist % 2 === 0 ? 1 : 0;
+        // Left side: set(alignmentMap[base-1-i*2-j], alignmentMap[i*2+k])
+        if (messageBits[rowOffset + rowSize * 6 + columnOffset + k]) {
+          matrix[alignmentMap[i * 2 + k]!]![alignmentMap[baseMatrixSize - 1 - i * 2 - j]!] = true;
+        }
       }
     }
+
+    rowOffset += rowSize * 8;
   }
-}
-
-// ---------------------------------------------------------------------------
-// Orientation marks
-// ---------------------------------------------------------------------------
-
-/**
- * Place orientation marks on the outermost ring of the core area.
- *
- * The core has one ring beyond the bullseye that carries orientation info:
- *   Compact: distance 5 from center (ring of 11x11)
- *   Full:    distance 7 from center (ring of 15x15)
- *
- * The orientation ring is drawn as follows (looking at a standard-orientation symbol):
- *   - Top side:    solid dark modules from left corner to right corner
- *   - Right side:  solid dark modules from top corner to bottom corner
- *   - Bottom side: alternating, starting dark from right-to-left, with
- *                  bottom-left corner = 0 (light)
- *   - Left side:   alternating, starting dark from bottom-to-top, with
- *                  top-left corner already dark from top side
- *
- * This creates an asymmetric pattern so scanners can determine orientation:
- *   - Top-left corner:     dark
- *   - Top-right corner:    dark
- *   - Bottom-right corner: dark
- *   - Bottom-left corner:  light
- */
-function placeOrientation(matrix: Cell[][], compact: boolean): void {
-  const size = matrix.length;
-  const center = Math.floor(size / 2);
-  const d = compact ? 5 : 7; // distance of orientation ring
-
-  const top = center - d;
-  const bottom = center + d;
-  const left = center - d;
-  const right = center + d;
-
-  // Top side: all dark
-  for (let c = left; c <= right; c++) {
-    matrix[top]![c] = 1;
-  }
-
-  // Right side: all dark
-  for (let r = top; r <= bottom; r++) {
-    matrix[r]![right] = 1;
-  }
-
-  // Bottom side: alternating, right to left
-  // Start with dark at bottom-right (already set by right side), alternate from there
-  for (let c = right; c >= left; c--) {
-    matrix[bottom]![c] = (right - c) % 2 === 0 ? 1 : 0;
-  }
-
-  // Left side: alternating, bottom to top
-  // bottom-left = 0 (from bottom side), then alternate upward
-  for (let r = bottom; r >= top; r--) {
-    matrix[r]![left] = (bottom - r) % 2 === 0 ? 1 : 0;
-  }
-
-  // Fix corners that may have been overwritten:
-  // Top-left: dark (top side takes priority)
-  matrix[top]![left] = 1;
-  // Top-right: dark (both top and right sides agree)
-  matrix[top]![right] = 1;
-  // Bottom-right: dark (both right and bottom sides agree)
-  matrix[bottom]![right] = 1;
-  // Bottom-left: light (orientation indicator)
-  matrix[bottom]![left] = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -311,95 +299,116 @@ function placeOrientation(matrix: Cell[][], compact: boolean): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Place mode message bits around the bullseye, between the bullseye
- * and the orientation ring.
+ * Draw the mode message around the core.
  *
- * For compact (28 bits): placed on the ring at distance 5 from center,
- *   on the INNER side of the orientation ring.
- *   7 bits per side, clockwise from upper-left:
- *     Top:    left to right
- *     Right:  top to bottom
- *     Bottom: right to left
- *     Left:   bottom to top
+ * For compact (28 bits): 7 bits per side, positioned at center +/- 3 to center +/- 3
+ * on the ring at distance 5 from center.
  *
- * For full-range (40 bits): placed at distance 7 from center,
- *   10 bits per side.
+ * For full-range (40 bits): 10 bits per side, positioned at center +/- 5 to center +/- 5
+ * on the ring at distance 7 from center, with a gap for the center reference grid line.
  *
- * The mode message positions interleave with the orientation ring.
- * Per the spec, the mode message bits sit on specific modules around
- * the boundary between the bullseye and the orientation ring.
- *
- * Specifically, for compact Aztec the 28 mode message bits are placed
- * on two rings: the modules just inside the orientation marks.
- * The positions go around the core clockwise.
+ * Matches ZXing's drawModeMessage exactly.
  */
-function placeModeMessage(matrix: Cell[][], bits: number[], compact: boolean): void {
-  const size = matrix.length;
-  const center = Math.floor(size / 2);
-  const d = compact ? 5 : 7;
+function drawModeMessage(
+  matrix: boolean[][],
+  modeMessage: number[],
+  compact: boolean,
+  matrixSize: number,
+): void {
+  const center = Math.floor(matrixSize / 2);
 
-  // The mode message is placed on the orientation ring itself,
-  // on the non-corner modules (the corners are reserved for orientation marks).
-  // Actually, per the spec the mode message goes on modules at specific
-  // positions around the core. For compact, it's on 7 modules per side.
+  // ZXing: set(x, y) -> matrix[y][x] (row=y, col=x)
+  if (compact) {
+    for (let i = 0; i < 7; i++) {
+      const offset = center - 3 + i;
+      // set(offset, center-5) -> matrix[center-5][offset]
+      if (modeMessage[i]) {
+        matrix[center - 5]![offset] = true;
+      }
+      // set(center+5, offset) -> matrix[offset][center+5]
+      if (modeMessage[i + 7]) {
+        matrix[offset]![center + 5] = true;
+      }
+      // set(offset, center+5) -> matrix[center+5][offset]
+      if (modeMessage[20 - i]) {
+        matrix[center + 5]![offset] = true;
+      }
+      // set(center-5, offset) -> matrix[offset][center-5]
+      if (modeMessage[27 - i]) {
+        matrix[offset]![center - 5] = true;
+      }
+    }
+  } else {
+    for (let i = 0; i < 10; i++) {
+      const offset = center - 5 + i + Math.floor(i / 5);
+      // set(offset, center-7) -> matrix[center-7][offset]
+      if (modeMessage[i]) {
+        matrix[center - 7]![offset] = true;
+      }
+      // set(center+7, offset) -> matrix[offset][center+7]
+      if (modeMessage[i + 10]) {
+        matrix[offset]![center + 7] = true;
+      }
+      // set(offset, center+7) -> matrix[center+7][offset]
+      if (modeMessage[29 - i]) {
+        matrix[center + 7]![offset] = true;
+      }
+      // set(center-7, offset) -> matrix[offset][center-7]
+      if (modeMessage[39 - i]) {
+        matrix[offset]![center - 7] = true;
+      }
+    }
+  }
+}
 
-  // We place the mode message on the same ring as the orientation marks,
-  // replacing the inner (non-corner, non-orientation-critical) modules.
+// ---------------------------------------------------------------------------
+// Bullseye finder pattern with orientation marks
+// ---------------------------------------------------------------------------
 
-  // Actually, let me use a cleaner approach: place mode message bits on
-  // a dedicated ring just inside the orientation ring (at distance d-1).
-  // This is at the outer edge of the bullseye pattern.
-
-  // Per ISO 24778, the mode message for compact is 28 bits placed around
-  // the core. The bits are placed clockwise starting from the top-left,
-  // going along the top side, then right, then bottom (right to left),
-  // then left (bottom to top).
-
-  // For compact: 7 bits per side, placed at the orientation ring position.
-  // The orientation ring occupies distance d from center.
-  // The mode message replaces certain modules on that ring.
-
-  // The mode message bits are placed on the sides of the orientation ring,
-  // EXCLUDING the corners. Each side has (2*d - 1) modules; corners are
-  // orientation marks, leaving (2*d - 1 - 2) = (2*d - 3) inner modules
-  // per side.
-
-  // For compact d=5: 2*5 - 1 = 9 modules per side of ring, minus 2 corners = 7. Correct!
-  // For full d=7: 2*7 - 1 = 13 modules per side of ring, minus 2 corners = 11.
-  //   But full mode message is 40 bits / 4 sides = 10 per side, not 11.
-  //   So full uses 10 of the 11 available modules per side.
-
-  const bitsPerSide = compact ? 7 : 10;
-  let bitIdx = 0;
-
-  const top = center - d;
-  const bottom = center + d;
-  const left = center - d;
-  const right = center + d;
-
-  // Top side: left+1 to left+bitsPerSide (excludes left corner, goes right)
-  for (let i = 0; i < bitsPerSide && bitIdx < bits.length; i++) {
-    matrix[top]![left + 1 + i] = bits[bitIdx]! as Cell;
-    bitIdx++;
+/**
+ * Draw the bullseye (concentric dark squares) and orientation marks.
+ *
+ * The bullseye consists of dark squares at even distances from center
+ * (distances 0, 2, 4 for compact; 0, 2, 4, 6 for full-range).
+ *
+ * Orientation marks are 6 specific dark modules at the corners of the
+ * outermost ring (distance = size parameter), creating an asymmetric
+ * pattern for scanner orientation detection.
+ *
+ * This is drawn LAST so it overwrites any data/mode modules in the center area.
+ *
+ * Matches ZXing's drawBullsEye exactly.
+ */
+function drawBullsEye(matrix: boolean[][], center: number, size: number): void {
+  // Draw concentric dark squares at even distances
+  // ZXing: set(x, y) -> matrix[y][x] (row=y, col=x)
+  for (let i = 0; i < size; i += 2) {
+    for (let j = center - i; j <= center + i; j++) {
+      // set(j, center-i) -> matrix[center-i][j]
+      matrix[center - i]![j] = true;
+      // set(j, center+i) -> matrix[center+i][j]
+      matrix[center + i]![j] = true;
+      // set(center-i, j) -> matrix[j][center-i]
+      matrix[j]![center - i] = true;
+      // set(center+i, j) -> matrix[j][center+i]
+      matrix[j]![center + i] = true;
+    }
   }
 
-  // Right side: top+1 to top+bitsPerSide
-  for (let i = 0; i < bitsPerSide && bitIdx < bits.length; i++) {
-    matrix[top + 1 + i]![right] = bits[bitIdx]! as Cell;
-    bitIdx++;
-  }
-
-  // Bottom side: right-1 to right-bitsPerSide (going left)
-  for (let i = 0; i < bitsPerSide && bitIdx < bits.length; i++) {
-    matrix[bottom]![right - 1 - i] = bits[bitIdx]! as Cell;
-    bitIdx++;
-  }
-
-  // Left side: bottom-1 to bottom-bitsPerSide (going up)
-  for (let i = 0; i < bitsPerSide && bitIdx < bits.length; i++) {
-    matrix[bottom - 1 - i]![left] = bits[bitIdx]! as Cell;
-    bitIdx++;
-  }
+  // Orientation marks — 6 dark modules that create an asymmetric pattern.
+  // ZXing: set(x, y) -> matrix[y][x]
+  // set(center-size, center-size) -> matrix[center-size][center-size]
+  matrix[center - size]![center - size] = true;
+  // set(center-size+1, center-size) -> matrix[center-size][center-size+1]
+  matrix[center - size]![center - size + 1] = true;
+  // set(center-size, center-size+1) -> matrix[center-size+1][center-size]
+  matrix[center - size + 1]![center - size] = true;
+  // set(center+size, center-size) -> matrix[center-size][center+size]
+  matrix[center - size]![center + size] = true;
+  // set(center+size, center-size+1) -> matrix[center-size+1][center+size]
+  matrix[center - size + 1]![center + size] = true;
+  // set(center+size, center+size-1) -> matrix[center+size-1][center+size]
+  matrix[center + size - 1]![center + size] = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -407,152 +416,28 @@ function placeModeMessage(matrix: Cell[][], bits: number[], compact: boolean): v
 // ---------------------------------------------------------------------------
 
 /**
- * Place reference grid lines for full-range Aztec symbols.
+ * Draw reference grid lines for full-range Aztec symbols.
  *
- * Reference grid lines run every 16 modules from the center, spanning the
- * entire symbol width/height. Modules on grid lines alternate dark/light.
- * The center row and column ARE grid lines (at offset 0) but are already
- * occupied by the bullseye, so we only explicitly draw the lines at
- * offsets +/-16, +/-32, etc.
+ * Reference grid lines appear every 16 columns/rows from the center.
+ * On each grid line, every other module is dark (those aligned with center parity).
+ * Grid lines are drawn on top of data to ensure they are visible.
  *
- * Grid line modules only fill cells that are still unset (-1).
+ * Matches ZXing's reference grid drawing:
+ *   for (int i = 0, j = 0; i < baseMatrixSize/2 - 1; i += 15, j += 16)
+ *     draw alternating modules on rows/cols at center +/- j
  */
-function placeReferenceGrid(matrix: Cell[][], size: number): void {
-  const center = Math.floor(size / 2);
+function drawReferenceGrid(matrix: boolean[][], baseMatrixSize: number, matrixSize: number): void {
+  const center = Math.floor(matrixSize / 2);
+  const centerParity = center & 1;
 
-  for (let offset = 16; center - offset >= 0 || center + offset < size; offset += 16) {
-    for (const pos of [center - offset, center + offset]) {
-      if (pos < 0 || pos >= size) continue;
-
-      // Horizontal line at row = pos
-      for (let c = 0; c < size; c++) {
-        if (matrix[pos]![c] === -1) {
-          matrix[pos]![c] = (c + pos) % 2 === 0 ? 1 : 0;
-        }
-      }
-
-      // Vertical line at col = pos
-      for (let r = 0; r < size; r++) {
-        if (matrix[r]![pos] === -1) {
-          matrix[r]![pos] = (r + pos) % 2 === 0 ? 1 : 0;
-        }
-      }
+  for (let i = 0, j = 0; i < Math.floor(baseMatrixSize / 2) - 1; i += 15, j += 16) {
+    for (let k = centerParity; k < matrixSize; k += 2) {
+      // Horizontal lines at rows center-j and center+j
+      matrix[center - j]![k] = true;
+      matrix[center + j]![k] = true;
+      // Vertical lines at cols center-j and center+j
+      matrix[k]![center - j] = true;
+      matrix[k]![center + j] = true;
     }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Data layer placement
-// ---------------------------------------------------------------------------
-
-/**
- * Place data bits into the layers around the core.
- *
- * Each data layer is a 2-module-wide ring outside the core/previous layer.
- * The core boundary is at distance 5 (compact) or 7 (full) from center,
- * so the first data layer occupies distances 6-7 (compact) or 8-9 (full).
- *
- * Within each layer, data modules are visited in clockwise order:
- *   Top side    -> Right side -> Bottom side -> Left side
- *
- * On each side, the two rows (or columns) of the layer are visited
- * together: for the top side we go left-to-right, reading the outer
- * row then inner row for each column position.
- *
- * Modules that are already occupied (by reference grid lines in full-range
- * symbols) are skipped — they don't carry data.
- */
-function placeDataLayers(matrix: Cell[][], bits: number[], layers: number, compact: boolean): void {
-  const size = matrix.length;
-  const center = Math.floor(size / 2);
-  const coreHalf = compact ? 5 : 7;
-
-  let bitIdx = 0;
-
-  for (let layer = 1; layer <= layers; layer++) {
-    // Distances from center for this layer's two rings
-    const innerDist = coreHalf + 2 * (layer - 1) + 1;
-    const outerDist = innerDist + 1;
-
-    const positions = collectLayerPositions(center, innerDist, outerDist, size, matrix);
-
-    for (const [r, c] of positions) {
-      if (bitIdx < bits.length) {
-        matrix[r]![c] = bits[bitIdx]! as Cell;
-      } else {
-        matrix[r]![c] = 0; // fill remaining with light
-      }
-      bitIdx++;
-    }
-  }
-}
-
-/**
- * Collect data module positions for one layer in clockwise order.
- *
- * The layer is a 2-module-wide ring between innerDist and outerDist.
- * We visit modules on 4 sides: Top, Right, Bottom, Left.
- * On each side, for each position along the side, we read the outer
- * module first, then the inner module.
- *
- * Positions already occupied by function patterns (bullseye, orientation,
- * reference grid) are skipped.
- */
-function collectLayerPositions(
-  center: number,
-  innerDist: number,
-  outerDist: number,
-  size: number,
-  matrix: Cell[][],
-): Array<[number, number]> {
-  const positions: Array<[number, number]> = [];
-
-  const outerTop = center - outerDist;
-  const outerBottom = center + outerDist;
-  const outerLeft = center - outerDist;
-  const outerRight = center + outerDist;
-
-  const innerTop = center - innerDist;
-  const innerBottom = center + innerDist;
-  const innerLeft = center - innerDist;
-  const innerRight = center + innerDist;
-
-  // Top side: columns left to right
-  for (let c = outerLeft; c <= outerRight; c++) {
-    addIfFree(positions, outerTop, c, size, matrix);
-    addIfFree(positions, innerTop, c, size, matrix);
-  }
-
-  // Right side: rows top+1 to bottom-1 (skip corners already covered)
-  for (let r = outerTop + 1; r <= outerBottom - 1; r++) {
-    addIfFree(positions, r, outerRight, size, matrix);
-    addIfFree(positions, r, innerRight, size, matrix);
-  }
-
-  // Bottom side: columns right to left
-  for (let c = outerRight; c >= outerLeft; c--) {
-    addIfFree(positions, outerBottom, c, size, matrix);
-    addIfFree(positions, innerBottom, c, size, matrix);
-  }
-
-  // Left side: rows bottom-1 to top+1
-  for (let r = outerBottom - 1; r >= outerTop + 1; r--) {
-    addIfFree(positions, r, outerLeft, size, matrix);
-    addIfFree(positions, r, innerLeft, size, matrix);
-  }
-
-  return positions;
-}
-
-/** Add a position if it is in bounds and not yet occupied */
-function addIfFree(
-  positions: Array<[number, number]>,
-  r: number,
-  c: number,
-  size: number,
-  matrix: Cell[][],
-): void {
-  if (r >= 0 && r < size && c >= 0 && c < size && matrix[r]![c] === -1) {
-    positions.push([r, c]);
   }
 }

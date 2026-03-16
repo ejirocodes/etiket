@@ -2,11 +2,12 @@
  * Reed-Solomon error correction for Aztec Code
  *
  * Aztec uses variable Galois Field sizes depending on symbol layers:
- *   GF(16)   / 4-bit:  compact layer 1
- *   GF(64)   / 6-bit:  compact layers 2-4, full layers 1-2
- *   GF(256)  / 8-bit:  full layers 3-8
- *   GF(1024) / 10-bit: full layers 9-22
- *   GF(4096) / 12-bit: full layers 23-32
+ *   GF(64)   / 6-bit:  layers 1-2
+ *   GF(256)  / 8-bit:  layers 3-8
+ *   GF(1024) / 10-bit: layers 9-22
+ *   GF(4096) / 12-bit: layers 23-32
+ *
+ * Mode message always uses GF(16) / 4-bit.
  *
  * Primitive polynomials:
  *   GF(16):   x^4  + x + 1                     (0x13)
@@ -85,25 +86,89 @@ function gfMul(gf: GFTables, a: number, b: number): number {
 export function rsEncode(data: number[], ecCount: number, wordSize: number): number[] {
   const gf = getGF(wordSize);
 
-  // Build generator polynomial: g(x) = (x - a^0)(x - a^1)...(x - a^(ecCount-1))
-  const gen = Array.from<number>({ length: ecCount + 1 }).fill(0);
-  gen[0] = 1;
-
-  for (let i = 0; i < ecCount; i++) {
-    for (let j = gen.length - 1; j >= 1; j--) {
-      gen[j] = gen[j - 1]! ^ gfMul(gf, gen[j]!, gf.exp[i]!);
+  // Build generator polynomial: g(x) = (x - a^1)(x - a^2)...(x - a^ecCount)
+  // Aztec RS uses roots starting at a^1, not a^0.
+  // Coefficients stored in descending degree: gen[0]*x^n + gen[1]*x^(n-1) + ... + gen[n]
+  let gen = [1];
+  for (let i = 1; i <= ecCount; i++) {
+    const root = gf.exp[i]!;
+    const newGen = new Array<number>(gen.length + 1).fill(0);
+    for (let j = 0; j < gen.length; j++) {
+      newGen[j] ^= gen[j]!;
+      newGen[j + 1] ^= gfMul(gf, gen[j]!, root);
     }
-    gen[0] = gfMul(gf, gen[0]!, gf.exp[i]!);
+    gen = newGen;
   }
 
-  // Polynomial long division: data polynomial / generator polynomial
-  const result = Array.from<number>({ length: ecCount }).fill(0);
-  for (const cw of data) {
-    const lead = cw ^ result[0]!;
-    for (let j = 0; j < ecCount - 1; j++) {
-      result[j] = result[j + 1]! ^ gfMul(gf, lead, gen[j + 1]!);
+  // Polynomial long division: (data * x^ecCount) mod gen
+  // Create dividend = data codewords followed by ecCount zeros
+  const dividend = [...data, ...new Array<number>(ecCount).fill(0)];
+
+  for (let i = 0; i < data.length; i++) {
+    if (dividend[i] !== 0) {
+      const coeff = dividend[i]!;
+      for (let j = 0; j < gen.length; j++) {
+        dividend[i + j] ^= gfMul(gf, coeff, gen[j]!);
+      }
     }
-    result[ecCount - 1] = gfMul(gf, lead, gen[ecCount]!);
+  }
+
+  // The remainder is the last ecCount entries of the dividend
+  return dividend.slice(data.length);
+}
+
+/**
+ * Generate check words (combined data + EC) as a bit array.
+ *
+ * This matches the ZXing generateCheckWords approach:
+ * 1. Convert stuffed data bits into codewords (first N positions of a totalWords array).
+ * 2. RS-encode in place (filling remaining positions with EC codewords).
+ * 3. Output startPad zero bits + all codewords as bits.
+ *
+ * @param stuffedBits - Stuffed data bit array
+ * @param totalBits - Total bit capacity for the symbol
+ * @param wordSize - Codeword size in bits
+ * @returns Bit array of length totalBits containing data + EC
+ */
+export function generateCheckWords(
+  stuffedBits: number[],
+  totalBits: number,
+  wordSize: number,
+): number[] {
+  const messageSizeInWords = Math.floor(stuffedBits.length / wordSize);
+  const totalWords = Math.floor(totalBits / wordSize);
+
+  // Convert stuffed bits to codewords (first messageSizeInWords positions filled)
+  const messageWords = new Array<number>(totalWords).fill(0);
+  for (let i = 0; i < messageSizeInWords; i++) {
+    let value = 0;
+    for (let j = 0; j < wordSize; j++) {
+      value |= (stuffedBits[i * wordSize + j]! ? 1 : 0) << (wordSize - j - 1);
+    }
+    messageWords[i] = value;
+  }
+
+  // RS-encode: fills positions messageSizeInWords..totalWords-1 with EC
+  const ecCount = totalWords - messageSizeInWords;
+  const ec = rsEncode(messageWords.slice(0, messageSizeInWords), ecCount, wordSize);
+  for (let i = 0; i < ecCount; i++) {
+    messageWords[messageSizeInWords + i] = ec[i]!;
+  }
+
+  // Convert to bits with startPad
+  const startPad = totalBits % wordSize;
+  const result: number[] = [];
+
+  // Add padding zeros at the start
+  for (let i = 0; i < startPad; i++) {
+    result.push(0);
+  }
+
+  // Add all codewords as bits
+  for (const cw of messageWords) {
+    for (let b = wordSize - 1; b >= 0; b--) {
+      result.push((cw >> b) & 1);
+    }
   }
 
   return result;

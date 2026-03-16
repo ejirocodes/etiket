@@ -65,17 +65,22 @@ const LOWER_TABLE: Record<string, number> = {
 
 /**
  * Mixed mode (5-bit codewords)
- * Codeword 1 = ^A (ctrl-A) … 13 = ^M (CR), plus misc punctuation
+ * Code 0 = NUL (or PS in encoder), 1 = SP, 2-14 = ctrl chars, 15-19 = ESC+FS/GS/RS/US,
+ * 20-27 = @\^_`|~DEL, 28-31 = LL/UL/PL/BS
+ *
+ * Matches ZXing mixedTable character-to-code mapping.
  */
 // prettier-ignore
 const MIXED_TABLE: Record<string, number> = {
-  '\x01': 1,  '\x02': 2,  '\x03': 3,  '\x04': 4,  '\x05': 5,
-  '\x06': 6,  '\x07': 7,  '\x08': 8,  '\x09': 9,  '\x0a': 10,
-  '\x0b': 11, '\x0c': 12, '\x0d': 13,
-  '\x1b': 14, // ESC
-  '\x1c': 15, '\x1d': 16, '\x1e': 17, '\x1f': 18,
-  '@': 19,  '\\': 20,  '^': 21,  '_': 22,  '`': 23,  '|': 24,  '~': 25,
-  '\x7f': 26, // DEL
+  '\x00': 0,
+  ' ': 1,
+  '\x01': 2,  '\x02': 3,  '\x03': 4,  '\x04': 5,  '\x05': 6,
+  '\x06': 7,  '\x07': 8,  '\x08': 9,  '\x09': 10, '\x0a': 11,
+  '\x0b': 12, '\x0c': 13, '\x0d': 14,
+  '\x1b': 15, // ESC
+  '\x1c': 16, '\x1d': 17, '\x1e': 18, '\x1f': 19,
+  '@': 20,  '\\': 21,  '^': 22,  '_': 23,  '`': 24,  '|': 25,  '~': 26,
+  '\x7f': 27, // DEL
 }
 
 /**
@@ -173,18 +178,24 @@ export function getLatchSequence(from: Mode, to: Mode): ModeSwitch {
       }
       break;
     case Mode.Lower:
+      // Lower: 28=AS(shift Upper), 29=ML(latch Mixed), 30=DL(latch Digit), 31=BS
       switch (to) {
         case Mode.Upper:
-          return { codes: [28, 28], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
+          // Lower -ML(29)-> Mixed -UL(29)-> Upper
+          return { codes: [29, 29], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
         case Mode.Mixed:
-          return { codes: [28], modes: [Mode.Lower], totalBits: 5 };
-        case Mode.Punct:
-          return { codes: [28, 30], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
-        case Mode.Digit:
+          // Lower -ML(29)-> Mixed
           return { codes: [29], modes: [Mode.Lower], totalBits: 5 };
+        case Mode.Punct:
+          // Lower -ML(29)-> Mixed -PL(30)-> Punct
+          return { codes: [29, 30], modes: [Mode.Lower, Mode.Mixed], totalBits: 10 };
+        case Mode.Digit:
+          // Lower -DL(30)-> Digit
+          return { codes: [30], modes: [Mode.Lower], totalBits: 5 };
       }
       break;
     case Mode.Mixed:
+      // Mixed: 28=LL(latch Lower), 29=UL(latch Upper), 30=PL(latch Punct), 31=BS
       switch (to) {
         case Mode.Upper:
           return { codes: [29], modes: [Mode.Mixed], totalBits: 5 };
@@ -193,7 +204,8 @@ export function getLatchSequence(from: Mode, to: Mode): ModeSwitch {
         case Mode.Punct:
           return { codes: [30], modes: [Mode.Mixed], totalBits: 5 };
         case Mode.Digit:
-          return { codes: [28, 29], modes: [Mode.Mixed, Mode.Lower], totalBits: 10 };
+          // Mixed -LL(28)-> Lower -DL(30)-> Digit
+          return { codes: [28, 30], modes: [Mode.Mixed, Mode.Lower], totalBits: 10 };
       }
       break;
     case Mode.Punct:
@@ -273,98 +285,56 @@ export interface AztecSize {
 }
 
 /**
- * Compute the codeword size for a given number of layers and compact flag.
- * Compact: layer 1 → 4-bit, layers 2-4 → 6-bit
- * Full:    layers 1-2 → 6-bit, layers 3-8 → 8-bit,
- *          layers 9-22 → 10-bit, layers 23-32 → 12-bit
+ * Word size lookup indexed by layer count (index 0 unused).
+ * Same table for both compact and full-range symbols.
+ * Matches ZXing reference: layers 1-2 → 6-bit, 3-8 → 8-bit,
+ * 9-22 → 10-bit, 23-32 → 12-bit.
  */
-export function getWordSize(layers: number, compact: boolean): number {
-  if (compact) {
-    return layers === 1 ? 4 : 6;
-  }
-  if (layers <= 2) return 6;
-  if (layers <= 8) return 8;
-  if (layers <= 22) return 10;
-  return 12;
+// prettier-ignore
+const WORD_SIZE: readonly number[] = [
+  4,  6,  6,  8,  8,  8,  8,  8,  8, 10, 10, 10, 10, 10, 10, 10, 10,
+  10, 10, 10, 10, 10, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+];
+
+/**
+ * Compute the codeword size for a given number of layers.
+ * The word size depends only on the layer count, NOT on compact vs full.
+ */
+export function getWordSize(layers: number, _compact?: boolean): number {
+  return WORD_SIZE[layers]!;
 }
 
 // ---------------------------------------------------------------------------
 // Symbol capacity tables
 // ---------------------------------------------------------------------------
 
-// prettier-ignore
 /**
- * Compact Aztec: total bit capacity per layer count (data + EC combined).
- * Indexed by layers-1 (0 = layer 1, 3 = layer 4).
- * From ISO 24778 Table 2.
+ * Compute the base matrix size (before adding reference grid lines).
+ * Compact: 11 + layers * 4
+ * Full:    14 + layers * 4
  */
-export const COMPACT_TOTAL_BITS: readonly number[] = [
-  88,   // L=1: 15x15
-  168,  // L=2: 19x19
-  288,  // L=3: 23x23
-  440,  // L=4: 27x27
-]
+export function getBaseMatrixSize(layers: number, compact: boolean): number {
+  return (compact ? 11 : 14) + layers * 4;
+}
 
 /**
- * Full-range Aztec: raw bit capacity per layer count (data + EC bits combined).
- * Layers 1-32. Indexed by layers-1.
- *
- * For full-range, the core is 15x15. Each layer i contributes modules,
- * but reference grid lines (every 16 rows/cols from center) consume some modules.
- *
- * The total codeword counts (data + EC) from the spec for each full-range layer:
- */
-// prettier-ignore
-export const FULL_TOTAL_BITS: readonly number[] = [
-  128,   // L=1:  19x19
-  288,   // L=2:  23x23
-  480,   // L=3:  27x27
-  704,   // L=4:  31x31
-  960,   // L=5:  35x35
-  1248,  // L=6:  39x39
-  1568,  // L=7:  43x43
-  1920,  // L=8:  47x47
-  2304,  // L=9:  51x51
-  2720,  // L=10: 55x55
-  3168,  // L=11: 59x59
-  3648,  // L=12: 63x63
-  4160,  // L=13: 67x67
-  4704,  // L=14: 71x71
-  5280,  // L=15: 75x75
-  5888,  // L=16: 79x79
-  6528,  // L=17: 83x83
-  7200,  // L=18: 87x87
-  7904,  // L=19: 91x91
-  8640,  // L=20: 95x95
-  9408,  // L=21: 99x99
-  10208, // L=22: 103x103
-  11040, // L=23: 107x107
-  11904, // L=24: 111x111
-  12800, // L=25: 115x115
-  13728, // L=26: 119x119
-  14688, // L=27: 123x123
-  15680, // L=28: 127x127
-  16704, // L=29: 131x131
-  17760, // L=30: 135x135
-  18848, // L=31: 139x139
-  19968, // L=32: 143x143
-]
-
-/**
- * Compute the number of modules on each side for a given configuration.
+ * Compute the final module count (matrix size) including reference grid lines.
+ * For compact: same as base matrix size (no reference grid).
+ * For full-range: base + 1 + 2 * floor((base/2 - 1) / 15) to account for
+ * reference grid lines inserted every 15 modules from center.
  */
 export function getModuleCount(layers: number, compact: boolean): number {
-  return compact ? 11 + 4 * layers : 15 + 4 * layers;
+  const base = getBaseMatrixSize(layers, compact);
+  if (compact) return base;
+  return base + 1 + 2 * Math.floor((Math.floor(base / 2) - 1) / 15);
 }
 
 /**
  * Get the total bit capacity for a symbol configuration.
+ * Formula: ((compact ? 88 : 112) + 16 * layers) * layers
  */
 export function getTotalBitCapacity(layers: number, compact: boolean): number {
-  if (compact) {
-    return COMPACT_TOTAL_BITS[layers - 1]!;
-  }
-  return FULL_TOTAL_BITS[layers - 1]!;
+  return ((compact ? 88 : 112) + 16 * layers) * layers;
 }
 
 // ---------------------------------------------------------------------------
