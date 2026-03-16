@@ -1,5 +1,5 @@
 /**
- * DotCode encoder (ISO/IEC 21471)
+ * DotCode encoder (AIM ISS DotCode 4.0)
  * High-speed industrial 2D barcode for tobacco, pharma
  *
  * Structure:

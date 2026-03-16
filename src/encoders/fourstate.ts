@@ -14,50 +14,36 @@ import { InvalidInputError } from "../errors";
 /** Bar state in a 4-state barcode */
 export type FourState = "T" | "A" | "D" | "F";
 
-// RM4SCC/KIX character encoding table
-// Each character maps to 4 bar states
-const RM4SCC_TABLE: Record<string, FourState[]> = {
-  "0": ["T", "T", "F", "F"],
-  "1": ["T", "A", "D", "F"],
-  "2": ["T", "A", "F", "D"],
-  "3": ["T", "F", "T", "F"],
-  "4": ["T", "F", "A", "D"],
-  "5": ["T", "F", "F", "T"],
-  "6": ["A", "T", "D", "F"],
-  "7": ["A", "T", "F", "D"],
-  "8": ["A", "A", "D", "D"], // actually: let me use correct RM4SCC table
-  "9": ["A", "F", "T", "D"],
-  A: ["D", "T", "A", "F"],
-  B: ["D", "T", "F", "A"],
-  C: ["D", "A", "T", "F"],
-  D: ["D", "A", "A", "D"],
-  E: ["D", "A", "F", "T"],
-  F: ["D", "F", "T", "A"],
-  G: ["D", "F", "A", "T"],
-  H: ["F", "T", "T", "F"],
-  I: ["F", "T", "A", "D"],
-  J: ["F", "T", "F", "T"],
-  K: ["F", "A", "T", "D"],
-  L: ["F", "A", "A", "T"], // actually wrong, let me use known-correct table
-  M: ["A", "A", "F", "T"],
-  N: ["A", "D", "T", "F"],
-  O: ["A", "D", "A", "D"],
-  P: ["A", "D", "F", "T"],
-  Q: ["A", "F", "D", "T"],
-  R: ["A", "F", "T", "D"], // duplicate of 9? Let me reconsider
-  S: ["F", "T", "D", "A"],
-  T: ["F", "A", "D", "T"],
-  U: ["F", "D", "T", "A"],
-  V: ["F", "D", "A", "T"],
-  W: ["D", "D", "T", "F"], // actually this is not right either
-  X: ["D", "D", "A", "D"], // the actual RM4SCC table needs research
-  Y: ["D", "D", "F", "T"],
-  Z: ["D", "F", "D", "T"],
-};
+// RM4SCC encoding derived from 6x6 row/col matrix per Royal Mail specification
+// Characters 0-9, A-Z are assigned sequential indices 0-35 in a 6x6 grid.
+// Each character's index → (row = floor(idx/6), col = idx%6).
+// Row and col values (0-5) each encode as 2 bar states:
+//   0=TT, 1=TA, 2=TF, 3=AT, 4=AF, 5=FT
+// So each character = row_pair + col_pair = 4 bars total.
+const ROW_COL_BARS: FourState[][] = [
+  ["T", "T"], // 0
+  ["T", "A"], // 1
+  ["T", "F"], // 2
+  ["A", "T"], // 3
+  ["A", "F"], // 4
+  ["F", "T"], // 5
+];
 
-// Correct RM4SCC encoding: each char -> 4 states using the standard mapping
-// The actual spec encodes using pairs of digits (row, col) from a 6x6 table
-// For simplicity, use the lookup table above (approximation good enough for encoding)
+const RM4SCC_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function rm4sccEncode(ch: string): FourState[] {
+  const idx = RM4SCC_CHARS.indexOf(ch);
+  if (idx === -1) throw new InvalidInputError(`Invalid RM4SCC character: ${ch}`);
+  const row = Math.floor(idx / 6);
+  const col = idx % 6;
+  return [...ROW_COL_BARS[row]!, ...ROW_COL_BARS[col]!];
+}
+
+// Build lookup table for fast access
+const RM4SCC_TABLE: Record<string, FourState[]> = {};
+for (const ch of RM4SCC_CHARS) {
+  RM4SCC_TABLE[ch] = rm4sccEncode(ch);
+}
 
 /** Calculate RM4SCC check digit (modulo 6 row+col system) */
 function rm4sccCheckDigit(text: string): string {

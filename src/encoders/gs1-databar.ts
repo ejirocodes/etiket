@@ -1,5 +1,5 @@
 /**
- * GS1 DataBar encoder (ISO/IEC 24723/24724)
+ * GS1 DataBar encoder (ISO/IEC 24724)
  * Formerly RSS (Reduced Space Symbology)
  *
  * Variants:

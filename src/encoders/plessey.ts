@@ -35,19 +35,49 @@ const START_PATTERN = [1, 1, 2, 2];
 const STOP_PATTERN = [2, 1];
 
 /**
- * Calculate Plessey CRC check digits
- * Uses a CRC polynomial for 2 check digits
+ * Calculate Plessey CRC check digits using polynomial division
+ * Generator polynomial: x^8 + x^7 + x^6 + x^5 + x^3 + 1 = 0x1E9 (9 bits)
+ * Produces 8-bit CRC = 2 hex check digits
  */
 function plesseyCRC(digits: string): [number, number] {
-  // Simple modulo-based check for Plessey
-  let sum1 = 0;
-  let sum2 = 0;
-  for (let i = 0; i < digits.length; i++) {
-    const val = Number.parseInt(digits[i]!, 16);
-    sum1 = (sum1 + val * (i + 1)) % 16;
-    sum2 = (sum2 + val * (i + 2)) % 16;
+  const POLY = 0x1e9; // x^8+x^7+x^6+x^5+x^3+1
+
+  // Convert hex digits to bit array (LSB first per Plessey convention)
+  const bits: number[] = [];
+  for (const ch of digits) {
+    const val = Number.parseInt(ch, 16);
+    for (let b = 0; b < 4; b++) {
+      bits.push((val >> b) & 1);
+    }
   }
-  return [sum1, sum2];
+
+  // Append 8 zero bits for CRC space
+  for (let i = 0; i < 8; i++) {
+    bits.push(0);
+  }
+
+  // Polynomial division over GF(2)
+  const reg = bits.slice();
+  for (let i = 0; i < reg.length - 8; i++) {
+    if (reg[i]) {
+      for (let j = 0; j < 9; j++) {
+        reg[i + j]! ^= (POLY >> j) & 1;
+      }
+    }
+  }
+
+  // Last 8 bits are the CRC remainder
+  const crcBits = reg.slice(-8);
+
+  // Convert 2 groups of 4 bits (LSB first) to hex digits
+  let crc1 = 0;
+  let crc2 = 0;
+  for (let b = 0; b < 4; b++) {
+    crc1 |= crcBits[b]! << b;
+    crc2 |= crcBits[b + 4]! << b;
+  }
+
+  return [crc1, crc2];
 }
 
 /**
