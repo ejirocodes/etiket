@@ -3,7 +3,7 @@
  * Fixed-size 2D barcode used on UPS shipping labels
  *
  * Structure:
- * - 33 rows × 30 columns hexagonal grid (884 modules, 864 data bits)
+ * - 33 rows x 30 columns hexagonal grid (884 modules, 864 data bits)
  * - Central bullseye finder pattern
  * - 6 encoding modes (2/3 for structured carrier, 4/5/6 for general)
  * - Reed-Solomon error correction over GF(64)
@@ -30,7 +30,7 @@ const GF64_LOG = new Uint8Array(64);
     GF64_EXP[i] = x;
     GF64_LOG[x] = i;
     x = x << 1;
-    if (x >= GF64_SIZE) x ^= 0x43;
+    if (x >= GF64_SIZE) x ^= 0x43; // x^6 + x + 1
   }
   // Extend exp table for modular arithmetic convenience
   for (let i = GF64_MAX; i < 128; i++) {
@@ -47,45 +47,117 @@ function gf64Mul(a: number, b: number): number {
 /**
  * Reed-Solomon error correction over GF(64).
  * Generator polynomial: product of (x - alpha^i) for i = 1..ecCount
+ * Matches BWIPP MaxiCode RS algorithm exactly.
  */
-function maxicodeEC(data: number[], ecCount: number): number[] {
+function maxicodeRS(data: number[], ecCount: number): number[] {
   // Build generator polynomial g(x) = (x - a^1)(x - a^2)...(x - a^ecCount)
   const gen = Array.from<number>({ length: ecCount + 1 }).fill(0);
   gen[0] = 1;
 
   for (let i = 1; i <= ecCount; i++) {
-    for (let j = gen.length - 1; j >= 1; j--) {
-      gen[j] = gen[j - 1]! ^ gf64Mul(gen[j]!, GF64_EXP[i]!);
+    gen[i] = gen[i - 1]!;
+    const ai = GF64_EXP[i]!;
+    for (let j = i - 1; j >= 1; j--) {
+      gen[j] = gf64Mul(gen[j]!, ai) ^ gen[j - 1]!;
     }
-    gen[0] = gf64Mul(gen[0]!, GF64_EXP[i]!);
+    gen[0] = gf64Mul(gen[0]!, ai);
   }
 
-  // Polynomial long division
-  const result = Array.from<number>({ length: ecCount }).fill(0);
+  const coeffs = gen.slice(0, ecCount);
+
+  // Polynomial long division (BWIPP order)
+  const ecb = Array.from<number>({ length: ecCount }).fill(0);
+  const rsnc1 = ecCount - 1;
+
   for (const cw of data) {
-    const lead = (cw ^ result[0]!) & GF64_MAX;
-    for (let j = 0; j < ecCount - 1; j++) {
-      result[j] = result[j + 1]! ^ gf64Mul(lead, gen[j + 1]!);
+    const t = (cw ^ ecb[0]!) & GF64_MAX;
+    for (let j = rsnc1; j >= 1; j--) {
+      ecb[rsnc1 - j] = ecb[rsnc1 - j + 1]! ^ gf64Mul(t, coeffs[j]!);
     }
-    result[ecCount - 1] = gf64Mul(lead, gen[ecCount]!);
+    ecb[rsnc1] = gf64Mul(t, coeffs[0]!);
   }
 
-  return result;
+  return ecb;
 }
 
 // ---------------------------------------------------------------------------
-// MaxiCode character encoding
+// MaxiCode character encoding (Code Sets A-E per ISO/IEC 16023)
 // ---------------------------------------------------------------------------
 
-// MaxiCode character set (Mode 4: Standard Code Set A — printable ASCII)
-function encodeMode4(text: string): number[] {
+// Code set assignment for each ASCII byte (0-255)
+// 0 = available in multiple sets, 1 = Set A, 2 = Set B, 3 = Set C, 4 = Set D, 5 = Set E
+// prettier-ignore
+const MAXICODE_SET: number[] = [
+  5,5,5,5,5,5,5,5,5,5,5,5,5,0,5,5,5,5,5,5,
+  5,5,5,5,5,5,5,5,0,0,0,5,0,2,1,1,1,1,1,1,
+  1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,1,1,0,2,
+  2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,
+  4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,
+  5,4,5,5,5,5,5,5,4,5,3,4,3,5,5,4,4,3,3,3,
+  4,3,5,4,4,3,3,4,3,3,3,4,3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+  3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+  4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+];
+
+// Symbol character value for each ASCII byte in its assigned code set
+// prettier-ignore
+const MAXICODE_SYMBOL_CHAR: number[] = [
+  0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,
+  20,21,22,23,24,25,26,30,28,29,30,35,32,53,34,35,36,37,38,39,
+  40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,37,
+  38,39,40,41,52,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+  16,17,18,19,20,21,22,23,24,25,26,42,43,44,45,46,0,1,2,3,
+  4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
+  24,25,26,32,54,34,35,36,48,49,50,51,52,53,54,55,56,57,47,48,
+  49,50,51,52,53,54,55,56,57,48,49,50,51,52,53,54,55,56,57,36,
+  37,37,38,39,40,41,42,43,38,44,37,39,38,45,46,40,41,39,40,41,
+  42,42,47,43,44,43,44,45,45,46,47,46,0,1,2,3,4,5,6,7,
+  8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,32,
+  33,34,35,36,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,
+  16,17,18,19,20,21,22,23,24,25,26,32,33,34,35,36,
+];
+
+// Control codes
+const CTRL_LATCH_B = 63; // Latch to Set B (from Set A)
+const CTRL_LATCH_A = 58; // Latch to Set A (from Set B)
+
+/**
+ * Encode text using MaxiCode character sets with automatic set switching.
+ * Starts in Code Set A. Uses latch codes when needed.
+ */
+function encodeMaxiCodeText(text: string): number[] {
   const codewords: number[] = [];
-  for (const ch of text) {
-    const code = ch.charCodeAt(0);
-    if (code < 32 || code > 126) {
-      codewords.push(0); // replace non-printable with space
+  let currentSet = 1; // Start in Code Set A
+
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code > 255) continue; // Skip non-latin
+
+    const charSet = MAXICODE_SET[code]!;
+    const symbolVal = MAXICODE_SYMBOL_CHAR[code]!;
+
+    if (charSet === 0 || charSet === currentSet) {
+      // Character is in current set or available in multiple sets
+      codewords.push(symbolVal);
+    } else if (charSet === 1 && currentSet === 2) {
+      // Need to switch from B to A
+      codewords.push(CTRL_LATCH_A);
+      codewords.push(symbolVal);
+      currentSet = 1;
+    } else if (charSet === 2 && currentSet === 1) {
+      // Need to switch from A to B
+      codewords.push(CTRL_LATCH_B);
+      codewords.push(symbolVal);
+      currentSet = 2;
     } else {
-      codewords.push(code - 32); // offset to 0-based
+      // For sets C/D/E, use shift codes
+      // Shift from set A: 59 = shift to set B for one char
+      // For simplicity, encode unknown chars as space
+      codewords.push(32);
     }
   }
   return codewords;
@@ -97,17 +169,6 @@ function encodeMode4(text: string): number[] {
 
 /**
  * Build the 10 primary-message codewords for modes 2 and 3.
- *
- * Primary message layout (all codewords are 6-bit, GF(64)):
- *   CW0:  mode indicator (2 or 3)
- *   Mode 2 (numeric US postal code):
- *     Pack 9-digit postal code as a 30-bit integer → CW1..CW5 (5 codewords, 6 bits each)
- *   Mode 3 (alphanumeric international postal code):
- *     6 characters, each encoded as 6-bit value → CW1..CW6
- *   Country code (10 bits) → 2 codewords
- *   Service class (10 bits) → 2 codewords
- *
- * Total primary data = 10 codewords
  */
 function buildPrimary(
   postalCode: string,
@@ -124,7 +185,7 @@ function buildPrimary(
     // Numeric postal code: 9 digits packed as a 30-bit integer
     const postal = postalCode.replace(/\D/g, "").padEnd(9, "0").substring(0, 9);
     const postalNum = Number.parseInt(postal, 10);
-    // 30 bits → 5 codewords of 6 bits each (MSB first)
+    // 30 bits -> 5 codewords of 6 bits each (MSB first)
     primary.push((postalNum >> 24) & 0x3f);
     primary.push((postalNum >> 18) & 0x3f);
     primary.push((postalNum >> 12) & 0x3f);
@@ -138,11 +199,11 @@ function buildPrimary(
     }
   }
 
-  // Country code (3-digit ISO, max 999 → 10 bits → 2 codewords)
+  // Country code (3-digit ISO, max 999 -> 10 bits -> 2 codewords)
   primary.push((countryCode >> 6) & 0x3f);
   primary.push(countryCode & 0x3f);
 
-  // Service class (3 digits → 10 bits → 2 codewords)
+  // Service class (3 digits -> 10 bits -> 2 codewords)
   primary.push((serviceClass >> 6) & 0x3f);
   primary.push(serviceClass & 0x3f);
 
@@ -150,126 +211,72 @@ function buildPrimary(
 }
 
 // ---------------------------------------------------------------------------
-// Bullseye finder pattern (ISO/IEC 16023)
+// Module placement sequence from ISO/IEC 16023 (via BWIPP reference)
+// Maps bit index -> pixel position (row * 30 + col)
 // ---------------------------------------------------------------------------
 
-/**
- * The bullseye is composed of 3 concentric dark rings with 2 light rings
- * between them, centered in the symbol grid.
- *
- * Center of the bullseye: row 16, col 14 (for odd rows) / between 14-15
- * (for even rows, which are offset by half a module).
- *
- * We define the finder pattern using explicit coordinate lists derived from
- * the standard's geometry. The pattern extends from approximately
- * rows 13–19, cols 11–18.
- */
+// prettier-ignore
+const MODMAP: number[] = [
+  469,529,286,316,347,346,673,672,703,702,647,676,283,282,313,312,370,610,618,379,
+  378,409,408,439,705,704,559,589,588,619,458,518,640,701,675,674,285,284,315,314,
+  310,340,531,289,288,319,349,348,456,486,517,516,471,470,369,368,399,398,429,428,
+  549,548,579,578,609,608,649,648,679,678,709,708,639,638,669,668,699,698,279,278,
+  309,308,339,338,381,380,411,410,441,440,561,560,591,590,621,620,547,546,577,576,
+  607,606,367,366,397,396,427,426,291,290,321,320,351,350,651,650,681,680,711,710,
+  1,0,31,30,61,60,3,2,33,32,63,62,5,4,35,34,65,64,7,6,
+  37,36,67,66,9,8,39,38,69,68,11,10,41,40,71,70,13,12,43,42,
+  73,72,15,14,45,44,75,74,17,16,47,46,77,76,19,18,49,48,79,78,
+  21,20,51,50,81,80,23,22,53,52,83,82,25,24,55,54,85,84,27,26,
+  57,56,87,86,117,116,147,146,177,176,115,114,145,144,175,174,113,112,143,142,
+  173,172,111,110,141,140,171,170,109,108,139,138,169,168,107,106,137,136,167,166,
+  105,104,135,134,165,164,103,102,133,132,163,162,101,100,131,130,161,160,99,98,
+  129,128,159,158,97,96,127,126,157,156,95,94,125,124,155,154,93,92,123,122,
+  153,152,91,90,121,120,151,150,181,180,211,210,241,240,183,182,213,212,243,242,
+  185,184,215,214,245,244,187,186,217,216,247,246,189,188,219,218,249,248,191,190,
+  221,220,251,250,193,192,223,222,253,252,195,194,225,224,255,254,197,196,227,226,
+  257,256,199,198,229,228,259,258,201,200,231,230,261,260,203,202,233,232,263,262,
+  205,204,235,234,265,264,207,206,237,236,267,266,297,296,327,326,357,356,295,294,
+  325,324,355,354,293,292,323,322,353,352,277,276,307,306,337,336,275,274,305,304,
+  335,334,273,272,303,302,333,332,271,270,301,300,331,330,361,360,391,390,421,420,
+  363,362,393,392,423,422,365,364,395,394,425,424,383,382,413,412,443,442,385,384,
+  415,414,445,444,387,386,417,416,447,446,477,476,507,506,537,536,475,474,505,504,
+  535,534,473,472,503,502,533,532,455,454,485,484,515,514,453,452,483,482,513,512,
+  451,450,481,480,511,510,541,540,571,570,601,600,543,542,573,572,603,602,545,544,
+  575,574,605,604,563,562,593,592,623,622,565,564,595,594,625,624,567,566,597,596,
+  627,626,657,656,687,686,717,716,655,654,685,684,715,714,653,652,683,682,713,712,
+  637,636,667,666,697,696,635,634,665,664,695,694,633,632,663,662,693,692,631,630,
+  661,660,691,690,721,720,751,750,781,780,723,722,753,752,783,782,725,724,755,754,
+  785,784,727,726,757,756,787,786,729,728,759,758,789,788,731,730,761,760,791,790,
+  733,732,763,762,793,792,735,734,765,764,795,794,737,736,767,766,797,796,739,738,
+  769,768,799,798,741,740,771,770,801,800,743,742,773,772,803,802,745,744,775,774,
+  805,804,747,746,777,776,807,806,837,836,867,866,897,896,835,834,865,864,895,894,
+  833,832,863,862,893,892,831,830,861,860,891,890,829,828,859,858,889,888,827,826,
+  857,856,887,886,825,824,855,854,885,884,823,822,853,852,883,882,821,820,851,850,
+  881,880,819,818,849,848,879,878,817,816,847,846,877,876,815,814,845,844,875,874,
+  813,812,843,842,873,872,811,810,841,840,871,870,901,900,931,930,961,960,903,902,
+  933,932,963,962,905,904,935,934,965,964,907,906,937,936,967,966,909,908,939,938,
+  969,968,911,910,941,940,971,970,913,912,943,942,973,972,915,914,945,944,975,974,
+  917,916,947,946,977,976,919,918,949,948,979,978,921,920,951,950,981,980,923,922,
+  953,952,983,982,925,924,955,954,985,984,927,926,957,956,987,986,58,89,88,118,
+  149,148,178,209,208,238,269,268,298,329,328,358,389,388,418,449,448,478,509,508,
+  538,569,568,598,629,628,658,689,688,718,749,748,778,809,808,838,869,868,898,929,
+  928,958,989,988,
+];
 
-// Each entry: [row, col, isDark]
-// Built from concentric rings: ring 0 (center) = dark, ring 1 = light,
-// ring 2 = dark, ring 3 = light, ring 4 = dark (outermost)
-const BULLSEYE: [number, number, boolean][] = [];
-
-function initBullseye(): void {
-  const CY = 16;
-  const CX = 14; // center column for odd rows; even rows offset by +0.5
-
-  for (let r = 10; r <= 22; r++) {
-    for (let c = 10; c <= 19; c++) {
-      // Compute distance in hex-grid units
-      // Even rows are shifted +0.5 in x
-      const xOff = r % 2 === 0 ? 0.5 : 0;
-      const dx = c + xOff - CX;
-      const dy = (r - CY) * 0.8660254; // sqrt(3)/2 for hex vertical spacing
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (dist <= 3.6) {
-        // Determine ring (0=center, 1, 2, 3, 4 from inside out)
-        let dark: boolean;
-        if (dist <= 0.6)
-          dark = true; // ring 0: center dot
-        else if (dist <= 1.35)
-          dark = false; // ring 1: light
-        else if (dist <= 2.1)
-          dark = true; // ring 2: dark
-        else if (dist <= 2.85)
-          dark = false; // ring 3: light
-        else dark = true; // ring 4: dark (outermost)
-        BULLSEYE.push([r, c, dark]);
-      }
-    }
-  }
-}
-
-initBullseye();
-
-/** Set of (row * COLS + col) indices occupied by the bullseye */
-const FINDER_SET = new Set<number>();
-for (const [r, c] of BULLSEYE) {
-  FINDER_SET.add(r * COLS + c);
-}
-
-// ---------------------------------------------------------------------------
-// Module placement sequence
-// ---------------------------------------------------------------------------
-
-/**
- * Build the data module placement sequence.
- *
- * MaxiCode places 864 data bits (144 codewords × 6 bits) in specific
- * module positions, excluding the bullseye finder pattern. The placement
- * follows a column-pair traversal from right to left with alternating
- * row direction.
- */
-function buildPlacementSequence(): number[] {
-  const sequence: number[] = [];
-  const used = new Set(FINDER_SET);
-
-  let goingUp = false;
-  for (let colPair = COLS - 1; colPair >= 0; colPair -= 2) {
-    const c1 = colPair;
-    const c0 = colPair - 1;
-
-    if (goingUp) {
-      for (let r = ROWS - 1; r >= 0; r--) {
-        if (c1 >= 0 && !used.has(r * COLS + c1)) {
-          sequence.push(r * COLS + c1);
-          used.add(r * COLS + c1);
-        }
-        if (c0 >= 0 && !used.has(r * COLS + c0)) {
-          sequence.push(r * COLS + c0);
-          used.add(r * COLS + c0);
-        }
-      }
-    } else {
-      for (let r = 0; r < ROWS; r++) {
-        if (c1 >= 0 && !used.has(r * COLS + c1)) {
-          sequence.push(r * COLS + c1);
-          used.add(r * COLS + c1);
-        }
-        if (c0 >= 0 && !used.has(r * COLS + c0)) {
-          sequence.push(r * COLS + c0);
-          used.add(r * COLS + c0);
-        }
-      }
-    }
-    goingUp = !goingUp;
-  }
-
-  return sequence;
-}
-
-const PLACEMENT_SEQUENCE = buildPlacementSequence();
-
-// ---------------------------------------------------------------------------
-// Bullseye placement into matrix
-// ---------------------------------------------------------------------------
-
-function placeBullseye(matrix: boolean[][]): void {
-  for (const [r, c, dark] of BULLSEYE) {
-    matrix[r]![c] = dark;
-  }
-}
+// Bullseye finder pattern positions from ZXing BitMatrixParser BITNR array
+// -1 entries = always dark, -2 entries = always light
+// We only need to explicitly set the dark ones; light positions are already default white
+// prettier-ignore
+const BULLSEYE_DARK: number[] = [
+  // row*30+col for each -1 entry in ZXing BITNR
+  9 * 30 + 17,  // row 9, col 17
+  10 * 30 + 17, // row 10, col 17
+  10 * 30 + 18, // row 10, col 18
+  16 * 30 + 7,  // row 16, col 7
+  16 * 30 + 21, // row 16, col 21
+  22 * 30 + 11, // row 22, col 11
+  23 * 30 + 16, // row 23, col 16
+];
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -288,7 +295,7 @@ export interface MaxiCodeOptions {
 
 /**
  * Encode text as MaxiCode
- * Returns a 33×30 boolean matrix (hexagonal grid representation)
+ * Returns a 33x30 boolean matrix (hexagonal grid representation)
  */
 export function encodeMaxiCode(text: string, options: MaxiCodeOptions = {}): boolean[][] {
   if (text.length === 0) {
@@ -308,55 +315,59 @@ export function encodeMaxiCode(text: string, options: MaxiCodeOptions = {}): boo
       mode,
     );
     // Secondary message: the text payload
-    secondaryRaw = encodeMode4(text);
+    secondaryRaw = encodeMaxiCodeText(text);
   } else {
     // Modes 4/5/6: primary is mode + first 9 data chars,
     // secondary is the remainder
-    const allData = [mode, ...encodeMode4(text)];
+    const allData = [mode, ...encodeMaxiCodeText(text)];
     primaryData = allData.slice(0, 10);
     secondaryRaw = allData.slice(10);
   }
 
   // Pad primary to exactly 10 codewords
   while (primaryData.length < 10) {
-    primaryData.push(33); // pad character
+    primaryData.push(33); // pad character (space in code set A)
   }
   primaryData = primaryData.slice(0, 10);
 
-  // Secondary message: 84 data codewords total, split into two equal halves
-  // Each half: 42 data codewords + 10 EC codewords
-  const SECONDARY_TOTAL = 84;
-  const SECONDARY_HALF = 42;
-
+  // Secondary message: pad to 84 codewords (modes 2/3/4/6) or 68 (mode 5)
+  const SECONDARY_TOTAL = mode === 5 ? 68 : 84;
   while (secondaryRaw.length < SECONDARY_TOTAL) {
     secondaryRaw.push(33); // pad character
   }
   secondaryRaw = secondaryRaw.slice(0, SECONDARY_TOTAL);
 
-  const secondaryData1 = secondaryRaw.slice(0, SECONDARY_HALF);
-  const secondaryData2 = secondaryRaw.slice(SECONDARY_HALF, SECONDARY_TOTAL);
-
   // Reed-Solomon error correction over GF(64)
-  // Primary:          10 data codewords → 10 EC codewords
-  // Secondary block 1: 42 data codewords → 10 EC codewords
-  // Secondary block 2: 42 data codewords → 10 EC codewords
-  const primaryEC = maxicodeEC(primaryData, 10);
-  const secondaryEC1 = maxicodeEC(secondaryData1, 10);
-  const secondaryEC2 = maxicodeEC(secondaryData2, 10);
+  // Primary: 10 data codewords -> 10 EC codewords
+  const primaryEC = maxicodeRS(primaryData, 10);
+
+  // Secondary: split into odd and even indexed codewords
+  const seco: number[] = [];
+  const sece: number[] = [];
+  for (let i = 0; i < secondaryRaw.length; i++) {
+    if (i % 2 === 0) {
+      seco.push(secondaryRaw[i]!);
+    } else {
+      sece.push(secondaryRaw[i]!);
+    }
+  }
+
+  // EC count per interleaved part
+  const secECCount = SECONDARY_TOTAL === 84 ? 20 : 28;
+  const secoEC = maxicodeRS(seco, secECCount);
+  const seceEC = maxicodeRS(sece, secECCount);
+
+  // Reassemble secondary EC by interleaving odd and even EC
+  const secChk: number[] = [];
+  for (let i = 0; i < secECCount; i++) {
+    secChk.push(secoEC[i]!);
+    secChk.push(seceEC[i]!);
+  }
 
   // Assemble all codewords in transmission order:
-  // Primary data (10) + Primary EC (10) +
-  // Secondary data 1 (42) + Secondary EC 1 (10) +
-  // Secondary data 2 (42) + Secondary EC 2 (10)
-  // Total: 10 + 10 + 42 + 10 + 42 + 10 = 124 codewords = 744 bits
-  const allCW = [
-    ...primaryData,
-    ...primaryEC,
-    ...secondaryData1,
-    ...secondaryEC1,
-    ...secondaryData2,
-    ...secondaryEC2,
-  ];
+  // Primary data (10) + Primary EC (10) + Secondary data (84/68) + Secondary EC (40/56)
+  // Total: 144 codewords = 864 bits
+  const allCW = [...primaryData, ...primaryEC, ...secondaryRaw, ...secChk];
 
   // Convert codewords to bit stream (6 bits per codeword, MSB first)
   const bits: number[] = [];
@@ -366,22 +377,26 @@ export function encodeMaxiCode(text: string, options: MaxiCodeOptions = {}): boo
     }
   }
 
-  // Build 33×30 matrix
-  const matrix: boolean[][] = Array.from({ length: ROWS }, () =>
-    Array.from({ length: COLS }, () => false),
-  );
+  // Build 33x30 matrix — initially all white
+  const pixs = new Uint8Array(ROWS * COLS); // 0 = white
 
-  // Place bullseye finder pattern
-  placeBullseye(matrix);
-
-  // Place data modules using the MaxiCode placement sequence
-  const maxBits = Math.min(bits.length, PLACEMENT_SEQUENCE.length);
+  // Place data modules using the MODMAP placement sequence
+  const maxBits = Math.min(bits.length, MODMAP.length);
   for (let i = 0; i < maxBits; i++) {
-    const idx = PLACEMENT_SEQUENCE[i]!;
-    const r = Math.floor(idx / COLS);
-    const c = idx % COLS;
-    matrix[r]![c] = bits[i] === 1;
+    if (bits[i] === 1) {
+      pixs[MODMAP[i]!] = 1;
+    }
   }
+
+  // Place bullseye finder pattern dark modules
+  for (const pos of BULLSEYE_DARK) {
+    pixs[pos] = 1;
+  }
+
+  // Convert pixel array to boolean matrix
+  const matrix: boolean[][] = Array.from({ length: ROWS }, (_, r) =>
+    Array.from({ length: COLS }, (_, c) => pixs[r * COLS + c] === 1),
+  );
 
   return matrix;
 }
