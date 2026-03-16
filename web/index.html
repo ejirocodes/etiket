@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/nitro.svg" />
-    <title>etiket — Barcode & QR Code Generator</title>
+    <title>etiket — Barcode & QR Code Playground</title>
+    <meta name="description" content="Zero-dependency barcode & QR code SVG generator. 20+ formats, styled QR codes, tree-shakeable." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
     <style>
       @import "~/app/assets/main.css";
     </style>
@@ -12,216 +13,682 @@
   <body>
     <main id="app">
       <header>
-        <h1><span>etiket</span></h1>
+        <h1><span class="accent">etiket</span></h1>
         <p>Zero-dependency barcode &amp; QR code SVG generator</p>
       </header>
 
-      <nav class="tabs">
-        <button class="tab active" data-tab="barcode">Barcode</button>
-        <button class="tab" data-tab="qrcode">QR Code</button>
-        <button class="tab" data-tab="2d">Data Matrix / PDF417 / Aztec</button>
-        <button class="tab" data-tab="helpers">Helpers</button>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="barcode" role="tab">Barcodes</button>
+        <button class="tab" data-tab="qr" role="tab">QR Code</button>
+        <button class="tab" data-tab="2d" role="tab">2D Codes</button>
+        <button class="tab" data-tab="helpers" role="tab">Helpers</button>
       </nav>
 
+      <!-- ═══════ BARCODE ═══════ -->
       <section class="panel active" data-panel="barcode">
-        <div class="controls">
-          <div class="field full">
-            <label>Data</label>
-            <input id="bc-data" type="text" value="Hello World" />
+        <div class="split">
+          <div class="controls">
+            <div class="field full">
+              <label for="bc-data">Data</label>
+              <input id="bc-data" type="text" value="Hello World" spellcheck="false" autocomplete="off" />
+              <small id="bc-hint" class="hint"></small>
+            </div>
+
+            <div class="field full">
+              <label for="bc-type">Type</label>
+              <select id="bc-type">
+                <optgroup label="Standard">
+                  <option value="code128" selected>Code 128</option>
+                  <option value="code39">Code 39</option>
+                  <option value="code39ext">Code 39 Extended</option>
+                  <option value="code93">Code 93</option>
+                  <option value="code93ext">Code 93 Extended</option>
+                  <option value="code11">Code 11</option>
+                </optgroup>
+                <optgroup label="Retail">
+                  <option value="ean13">EAN-13</option>
+                  <option value="ean8">EAN-8</option>
+                  <option value="ean2">EAN-2</option>
+                  <option value="ean5">EAN-5</option>
+                  <option value="upca">UPC-A</option>
+                  <option value="upce">UPC-E</option>
+                </optgroup>
+                <optgroup label="Industrial">
+                  <option value="itf">ITF</option>
+                  <option value="itf14">ITF-14</option>
+                  <option value="codabar">Codabar</option>
+                  <option value="msi">MSI Plessey</option>
+                  <option value="pharmacode">Pharmacode</option>
+                  <option value="plessey">Plessey</option>
+                </optgroup>
+                <optgroup label="GS1">
+                  <option value="gs1-128">GS1-128</option>
+                  <option value="gs1-databar">GS1 DataBar</option>
+                  <option value="gs1-databar-limited">GS1 DataBar Limited</option>
+                  <option value="gs1-databar-expanded">GS1 DataBar Expanded</option>
+                </optgroup>
+                <optgroup label="Postal">
+                  <option value="identcode">Identcode</option>
+                  <option value="leitcode">Leitcode</option>
+                  <option value="postnet">POSTNET</option>
+                  <option value="planet">PLANET</option>
+                </optgroup>
+                <optgroup label="4-State Postal">
+                  <option value="rm4scc">RM4SCC (Royal Mail)</option>
+                  <option value="kix">KIX (Netherlands)</option>
+                  <option value="australia-post">Australia Post</option>
+                  <option value="japan-post">Japan Post</option>
+                  <option value="imb">Intelligent Mail (IMb)</option>
+                </optgroup>
+                <optgroup label="Healthcare">
+                  <option value="hibc-primary">HIBC Primary</option>
+                  <option value="hibc-secondary">HIBC Secondary</option>
+                  <option value="hibc-concatenated">HIBC Concatenated</option>
+                  <option value="isbt-din">ISBT 128 DIN</option>
+                  <option value="isbt-component">ISBT 128 Component</option>
+                  <option value="isbt-expiry">ISBT 128 Expiry</option>
+                  <option value="isbt-bloodgroup">ISBT 128 Blood Group</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <details class="section" open>
+              <summary>Appearance</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="bc-height">Height</label>
+                  <input id="bc-height" type="number" value="80" min="20" max="300" />
+                </div>
+                <div class="field">
+                  <label for="bc-barwidth">Bar Width</label>
+                  <input id="bc-barwidth" type="number" value="2" min="1" max="6" />
+                </div>
+                <div class="field">
+                  <label for="bc-color">Color</label>
+                  <input id="bc-color" type="color" value="#000000" />
+                </div>
+                <div class="field">
+                  <label for="bc-bg">Background</label>
+                  <input id="bc-bg" type="color" value="#ffffff" />
+                </div>
+                <div class="field">
+                  <label for="bc-rotation">Rotation</label>
+                  <select id="bc-rotation">
+                    <option value="0">0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="bc-showtext">Show Text</label>
+                  <select id="bc-showtext">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <details class="section">
+              <summary>Margin</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="bc-margin">All</label>
+                  <input id="bc-margin" type="number" value="10" min="0" max="50" />
+                </div>
+                <div class="field">
+                  <label for="bc-mt">Top</label>
+                  <input id="bc-mt" type="number" min="0" max="50" placeholder="auto" />
+                </div>
+                <div class="field">
+                  <label for="bc-mb">Bottom</label>
+                  <input id="bc-mb" type="number" min="0" max="50" placeholder="auto" />
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="field">
-            <label>Type</label>
-            <select id="bc-type">
-              <option value="code128">code128</option>
-              <option value="ean13">ean13</option>
-              <option value="ean8">ean8</option>
-              <option value="code39">code39</option>
-              <option value="code93">code93</option>
-              <option value="itf">itf</option>
-              <option value="itf14">itf14</option>
-              <option value="upca">upca</option>
-              <option value="upce">upce</option>
-              <option value="codabar">codabar</option>
-              <option value="msi">msi</option>
-              <option value="pharmacode">pharmacode</option>
-              <option value="code11">code11</option>
-              <option value="gs1-128">gs1-128</option>
-            </select>
+
+          <div class="preview">
+            <div class="output" id="bc-output"></div>
+            <div class="actions">
+              <button class="btn" id="bc-copy">Copy SVG</button>
+              <button class="btn" id="bc-download">Download SVG</button>
+            </div>
           </div>
-          <div class="field">
-            <label>Height</label>
-            <input id="bc-height" type="number" value="80" min="20" max="300" />
-          </div>
-          <div class="field">
-            <label>Bar Width</label>
-            <input id="bc-barwidth" type="number" value="2" min="1" max="6" />
-          </div>
-          <div class="field">
-            <label>Color</label>
-            <input id="bc-color" type="color" value="#000000" />
-          </div>
-          <div class="field">
-            <label>Show Text</label>
-            <select id="bc-showtext">
-              <option value="false">No</option>
-              <option value="true">Yes</option>
-            </select>
-          </div>
-        </div>
-        <div class="output" id="bc-output"></div>
-        <div class="actions">
-          <button id="bc-copy">Copy SVG</button>
-          <button id="bc-download">Download SVG</button>
         </div>
       </section>
 
-      <section class="panel" data-panel="qrcode">
-        <div class="controls">
-          <div class="field full">
-            <label>Data</label>
-            <input id="qr-data" type="text" value="https://example.com" />
+      <!-- ═══════ QR CODE ═══════ -->
+      <section class="panel" data-panel="qr">
+        <div class="split">
+          <div class="controls">
+            <div class="field full">
+              <label for="qr-data">Data</label>
+              <input id="qr-data" type="text" value="https://example.com" spellcheck="false" autocomplete="off" />
+            </div>
+
+            <details class="section" open>
+              <summary>General</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="qr-size">Size</label>
+                  <input id="qr-size" type="number" value="300" min="50" max="1000" />
+                </div>
+                <div class="field">
+                  <label for="qr-margin">Margin</label>
+                  <input id="qr-margin" type="number" value="4" min="0" max="10" />
+                </div>
+                <div class="field">
+                  <label for="qr-ec">EC Level</label>
+                  <select id="qr-ec">
+                    <option value="L">L (7%)</option>
+                    <option value="M" selected>M (15%)</option>
+                    <option value="Q">Q (25%)</option>
+                    <option value="H">H (30%)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="qr-shape">Shape</label>
+                  <select id="qr-shape">
+                    <option value="square">Square</option>
+                    <option value="circle">Circle</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="qr-micro">Variant</label>
+                  <select id="qr-micro">
+                    <option value="standard">Standard QR</option>
+                    <option value="micro">Micro QR</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <details class="section" open>
+              <summary>Style</summary>
+              <div class="field-grid">
+                <div class="field full">
+                  <label for="qr-dot">Dot Type</label>
+                  <select id="qr-dot">
+                    <option value="square">Square</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="dots">Dots</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="classy">Classy</option>
+                    <option value="classy-rounded">Classy Rounded</option>
+                    <option value="extra-rounded">Extra Rounded</option>
+                    <option value="vertical-line">Vertical Line</option>
+                    <option value="horizontal-line">Horizontal Line</option>
+                    <option value="small-square">Small Square</option>
+                    <option value="tiny-square">Tiny Square</option>
+                  </select>
+                </div>
+                <div class="field full">
+                  <label>Dot Size <span class="range-val" id="qr-dotsize-val">1.0</span></label>
+                  <input id="qr-dotsize" type="range" min="0.3" max="1" step="0.05" value="1" />
+                </div>
+              </div>
+            </details>
+
+            <details class="section" open>
+              <summary>Colors</summary>
+              <div class="field-grid">
+                <div class="field full">
+                  <label>Foreground</label>
+                  <div class="color-mode">
+                    <select id="qr-colormode">
+                      <option value="solid">Solid</option>
+                      <option value="linear">Linear Gradient</option>
+                      <option value="radial">Radial Gradient</option>
+                    </select>
+                    <div class="color-row" data-colorgroup="qr-fg" data-mode="solid">
+                      <input id="qr-color" type="color" value="#000000" />
+                    </div>
+                    <div class="color-row" data-colorgroup="qr-fg" data-mode="linear" hidden>
+                      <input id="qr-grad-start" type="color" value="#ff6b6b" />
+                      <input id="qr-grad-end" type="color" value="#4ecdc4" />
+                      <input id="qr-grad-rot" type="number" value="45" min="0" max="360" placeholder="angle" />
+                    </div>
+                    <div class="color-row" data-colorgroup="qr-fg" data-mode="radial" hidden>
+                      <input id="qr-radial-start" type="color" value="#667eea" />
+                      <input id="qr-radial-end" type="color" value="#764ba2" />
+                    </div>
+                  </div>
+                </div>
+                <div class="field full">
+                  <label>Background</label>
+                  <div class="color-mode">
+                    <select id="qr-bgmode">
+                      <option value="solid">Solid</option>
+                      <option value="transparent">Transparent</option>
+                      <option value="linear">Linear Gradient</option>
+                      <option value="radial">Radial Gradient</option>
+                    </select>
+                    <div class="color-row" data-colorgroup="qr-bg" data-mode="solid">
+                      <input id="qr-bg" type="color" value="#ffffff" />
+                    </div>
+                    <div class="color-row" data-colorgroup="qr-bg" data-mode="linear" hidden>
+                      <input id="qr-bg-grad-start" type="color" value="#ffecd2" />
+                      <input id="qr-bg-grad-end" type="color" value="#fcb69f" />
+                      <input id="qr-bg-grad-rot" type="number" value="135" min="0" max="360" placeholder="angle" />
+                    </div>
+                    <div class="color-row" data-colorgroup="qr-bg" data-mode="radial" hidden>
+                      <input id="qr-bg-radial-start" type="color" value="#ffffff" />
+                      <input id="qr-bg-radial-end" type="color" value="#e0e0e0" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <details class="section">
+              <summary>Finder Corners</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="qr-corner-outer">Outer</label>
+                  <select id="qr-corner-outer">
+                    <option value="">Default</option>
+                    <option value="square">Square</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="dots">Dots</option>
+                    <option value="extra-rounded">Extra Rounded</option>
+                    <option value="classy">Classy</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="qr-corner-inner">Inner</label>
+                  <select id="qr-corner-inner">
+                    <option value="">Default</option>
+                    <option value="square">Square</option>
+                    <option value="dots">Dots</option>
+                    <option value="rounded">Rounded</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="qr-corner-color">Outer Color</label>
+                  <input id="qr-corner-color" type="color" value="#000000" />
+                </div>
+                <div class="field">
+                  <label for="qr-corner-inner-color">Inner Color</label>
+                  <input id="qr-corner-inner-color" type="color" value="#000000" />
+                </div>
+              </div>
+            </details>
+
+            <details class="section">
+              <summary>Logo</summary>
+              <div class="field-grid">
+                <div class="field full">
+                  <label for="qr-logo-type">Type</label>
+                  <select id="qr-logo-type">
+                    <option value="none">None</option>
+                    <option value="path">SVG Path</option>
+                    <option value="url">Image URL</option>
+                  </select>
+                </div>
+                <div class="field full" id="qr-logo-path-wrap" hidden>
+                  <label for="qr-logo-path">Path Data</label>
+                  <textarea id="qr-logo-path" rows="2" spellcheck="false" placeholder="M50 10 L90 90 L10 90 Z"></textarea>
+                </div>
+                <div class="field full" id="qr-logo-url-wrap" hidden>
+                  <label for="qr-logo-url">Image URL</label>
+                  <input id="qr-logo-url" type="text" placeholder="data:image/png;base64,..." spellcheck="false" />
+                </div>
+                <div class="field">
+                  <label>Size <span class="range-val" id="qr-logo-size-val">0.3</span></label>
+                  <input id="qr-logo-size" type="range" min="0.1" max="0.5" step="0.05" value="0.3" />
+                </div>
+                <div class="field">
+                  <label for="qr-logo-margin">Margin</label>
+                  <input id="qr-logo-margin" type="number" value="5" min="0" max="20" />
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="field">
-            <label>Size</label>
-            <input id="qr-size" type="number" value="250" min="50" max="800" />
+
+          <div class="preview">
+            <div class="output" id="qr-output"></div>
+            <div class="actions">
+              <button class="btn" id="qr-copy">Copy SVG</button>
+              <button class="btn" id="qr-download">Download SVG</button>
+            </div>
           </div>
-          <div class="field">
-            <label>EC Level</label>
-            <select id="qr-ec">
-              <option value="L">L (7%)</option>
-              <option value="M" selected>M (15%)</option>
-              <option value="Q">Q (25%)</option>
-              <option value="H">H (30%)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Dot Type</label>
-            <select id="qr-dot">
-              <option value="square">square</option>
-              <option value="rounded">rounded</option>
-              <option value="dots">dots</option>
-              <option value="diamond">diamond</option>
-              <option value="classy">classy</option>
-              <option value="classy-rounded">classy-rounded</option>
-              <option value="extra-rounded">extra-rounded</option>
-              <option value="vertical-line">vertical-line</option>
-              <option value="horizontal-line">horizontal-line</option>
-              <option value="small-square">small-square</option>
-              <option value="tiny-square">tiny-square</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Color</label>
-            <input id="qr-color" type="color" value="#000000" />
-          </div>
-          <div class="field">
-            <label>Background</label>
-            <input id="qr-bg" type="color" value="#ffffff" />
-          </div>
-          <div class="field">
-            <label>Margin</label>
-            <input id="qr-margin" type="number" value="4" min="0" max="10" />
-          </div>
-        </div>
-        <div class="output" id="qr-output"></div>
-        <div class="actions">
-          <button id="qr-copy">Copy SVG</button>
-          <button id="qr-download">Download SVG</button>
         </div>
       </section>
 
+      <!-- ═══════ 2D CODES ═══════ -->
       <section class="panel" data-panel="2d">
-        <div class="controls">
-          <div class="field full">
-            <label>Data</label>
-            <input id="m2d-data" type="text" value="Hello World" />
+        <div class="split">
+          <div class="controls">
+            <div class="field full">
+              <label for="m2d-data">Data</label>
+              <input id="m2d-data" type="text" value="Hello World" spellcheck="false" autocomplete="off" />
+            </div>
+
+            <div class="field full">
+              <label for="m2d-format">Format</label>
+              <select id="m2d-format">
+                <optgroup label="Standard">
+                  <option value="datamatrix">Data Matrix</option>
+                  <option value="gs1datamatrix">GS1 Data Matrix</option>
+                  <option value="pdf417">PDF417</option>
+                  <option value="aztec">Aztec Code</option>
+                </optgroup>
+                <optgroup label="Compact">
+                  <option value="micropdf417">Micro PDF417</option>
+                  <option value="rmqr">RMQR</option>
+                </optgroup>
+                <optgroup label="Advanced">
+                  <option value="maxicode">MaxiCode</option>
+                  <option value="dotcode">DotCode</option>
+                  <option value="hanxin">Han Xin</option>
+                  <option value="jabcode">JABCode (Color)</option>
+                </optgroup>
+                <optgroup label="Stacked">
+                  <option value="codablockf">Codablock F</option>
+                  <option value="code16k">Code 16K</option>
+                </optgroup>
+                <optgroup label="Composite">
+                  <option value="gs1-composite">GS1 Composite</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <details class="section" open>
+              <summary>Appearance</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-size">Size</label>
+                  <input id="m2d-size" type="number" value="300" min="50" max="800" />
+                </div>
+                <div class="field">
+                  <label for="m2d-margin">Margin</label>
+                  <input id="m2d-margin" type="number" value="4" min="0" max="10" />
+                </div>
+                <div class="field">
+                  <label for="m2d-color">Color</label>
+                  <input id="m2d-color" type="color" value="#000000" />
+                </div>
+                <div class="field">
+                  <label for="m2d-bg">Background</label>
+                  <input id="m2d-bg" type="color" value="#ffffff" />
+                </div>
+              </div>
+            </details>
+
+            <!-- PDF417 options -->
+            <details class="section" id="m2d-pdf417-opts" hidden>
+              <summary>PDF417 Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-pdf-ec">EC Level</label>
+                  <select id="m2d-pdf-ec">
+                    <option value="2" selected>2</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="m2d-pdf-cols">Columns</label>
+                  <input id="m2d-pdf-cols" type="number" min="1" max="30" placeholder="auto" />
+                </div>
+                <div class="field">
+                  <label for="m2d-pdf-compact">Compact</label>
+                  <select id="m2d-pdf-compact"><option value="false">No</option><option value="true">Yes</option></select>
+                </div>
+              </div>
+            </details>
+
+            <!-- Aztec options -->
+            <details class="section" id="m2d-aztec-opts" hidden>
+              <summary>Aztec Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-az-ec">EC %</label>
+                  <input id="m2d-az-ec" type="number" value="23" min="5" max="95" />
+                </div>
+                <div class="field">
+                  <label for="m2d-az-layers">Layers</label>
+                  <input id="m2d-az-layers" type="number" min="1" max="32" placeholder="auto" />
+                </div>
+                <div class="field">
+                  <label for="m2d-az-compact">Compact</label>
+                  <select id="m2d-az-compact"><option value="false">No</option><option value="true">Yes</option></select>
+                </div>
+              </div>
+            </details>
+
+            <!-- Micro PDF417 options -->
+            <details class="section" id="m2d-mpdf-opts" hidden>
+              <summary>Micro PDF417 Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-mpdf-cols">Columns</label>
+                  <select id="m2d-mpdf-cols">
+                    <option value="">Auto</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <!-- RMQR options -->
+            <details class="section" id="m2d-rmqr-opts" hidden>
+              <summary>RMQR Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-rmqr-ec">EC Level</label>
+                  <select id="m2d-rmqr-ec"><option value="M">M</option><option value="H">H</option></select>
+                </div>
+              </div>
+            </details>
+
+            <!-- MaxiCode options -->
+            <details class="section" id="m2d-maxi-opts" hidden>
+              <summary>MaxiCode Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-maxi-mode">Mode</label>
+                  <select id="m2d-maxi-mode">
+                    <option value="4" selected>4 (General)</option>
+                    <option value="2">2 (Postal, Numeric)</option>
+                    <option value="3">3 (Postal, Alpha)</option>
+                    <option value="5">5 (Full ECC)</option>
+                    <option value="6">6 (Reader Program)</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <!-- HanXin options -->
+            <details class="section" id="m2d-hanxin-opts" hidden>
+              <summary>Han Xin Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-hanxin-ec">EC Level</label>
+                  <select id="m2d-hanxin-ec">
+                    <option value="1">L1</option>
+                    <option value="2" selected>L2</option>
+                    <option value="3">L3</option>
+                    <option value="4">L4</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <!-- JABCode options -->
+            <details class="section" id="m2d-jab-opts" hidden>
+              <summary>JABCode Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-jab-colors">Colors</label>
+                  <select id="m2d-jab-colors">
+                    <option value="4">4 Colors</option>
+                    <option value="8">8 Colors</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <!-- GS1 Composite options -->
+            <details class="section" id="m2d-composite-opts" hidden>
+              <summary>GS1 Composite Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-comp-type">Type</label>
+                  <select id="m2d-comp-type">
+                    <option value="CC-A">CC-A</option>
+                    <option value="CC-B">CC-B</option>
+                    <option value="CC-C">CC-C</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+
+            <!-- CodablockF options -->
+            <details class="section" id="m2d-codablockf-opts" hidden>
+              <summary>Codablock F Options</summary>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="m2d-cbf-cols">Columns</label>
+                  <input id="m2d-cbf-cols" type="number" min="4" max="62" placeholder="auto" />
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="field">
-            <label>Format</label>
-            <select id="m2d-format">
-              <option value="datamatrix">Data Matrix</option>
-              <option value="pdf417">PDF417</option>
-              <option value="aztec">Aztec</option>
-            </select>
+
+          <div class="preview">
+            <div class="output" id="m2d-output"></div>
+            <div class="actions">
+              <button class="btn" id="m2d-copy">Copy SVG</button>
+              <button class="btn" id="m2d-download">Download SVG</button>
+            </div>
           </div>
-          <div class="field">
-            <label>Color</label>
-            <input id="m2d-color" type="color" value="#000000" />
-          </div>
-        </div>
-        <div class="output" id="m2d-output"></div>
-        <div class="actions">
-          <button id="m2d-copy">Copy SVG</button>
-          <button id="m2d-download">Download SVG</button>
         </div>
       </section>
 
+      <!-- ═══════ HELPERS ═══════ -->
       <section class="panel" data-panel="helpers">
+        <p class="panel-desc">Generate QR codes for common use cases.</p>
         <div class="helpers-grid">
           <div class="helper-card">
             <h3>WiFi</h3>
-            <div class="field"><label>SSID</label><input id="h-wifi-ssid" value="MyNetwork" /></div>
-            <div class="field">
-              <label>Password</label><input id="h-wifi-pass" value="secret123" />
+            <div class="helper-fields">
+              <div class="field"><label>SSID</label><input id="h-wifi-ssid" value="MyNetwork" /></div>
+              <div class="field"><label>Password</label><input id="h-wifi-pass" type="password" value="secret123" /></div>
+              <div class="field"><label>Encryption</label>
+                <select id="h-wifi-enc"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select>
+              </div>
             </div>
-            <div class="output" id="h-wifi-out"></div>
+            <div class="helper-output" id="h-wifi-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-wifi">Copy</button><button class="btn-sm" data-helper-dl="h-wifi">Download</button></div>
+          </div>
+          <div class="helper-card">
+            <h3>URL</h3>
+            <div class="helper-fields"><div class="field"><label>URL</label><input id="h-url" value="https://github.com" /></div></div>
+            <div class="helper-output" id="h-url-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-url">Copy</button><button class="btn-sm" data-helper-dl="h-url">Download</button></div>
           </div>
           <div class="helper-card">
             <h3>Email</h3>
-            <div class="field">
-              <label>Address</label><input id="h-email" value="hello@example.com" />
+            <div class="helper-fields"><div class="field"><label>Address</label><input id="h-email" value="hello@example.com" /></div></div>
+            <div class="helper-output" id="h-email-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-email">Copy</button><button class="btn-sm" data-helper-dl="h-email">Download</button></div>
+          </div>
+          <div class="helper-card">
+            <h3>SMS</h3>
+            <div class="helper-fields">
+              <div class="field"><label>Number</label><input id="h-sms-num" value="+1234567890" /></div>
+              <div class="field"><label>Body</label><input id="h-sms-body" value="Hello!" /></div>
             </div>
-            <div class="output" id="h-email-out"></div>
+            <div class="helper-output" id="h-sms-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-sms">Copy</button><button class="btn-sm" data-helper-dl="h-sms">Download</button></div>
           </div>
           <div class="helper-card">
             <h3>Phone</h3>
-            <div class="field"><label>Number</label><input id="h-phone" value="+1234567890" /></div>
-            <div class="output" id="h-phone-out"></div>
+            <div class="helper-fields"><div class="field"><label>Number</label><input id="h-phone" value="+1234567890" /></div></div>
+            <div class="helper-output" id="h-phone-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-phone">Copy</button><button class="btn-sm" data-helper-dl="h-phone">Download</button></div>
           </div>
           <div class="helper-card">
-            <h3>Geo</h3>
-            <div class="field">
-              <label>Lat</label><input id="h-geo-lat" type="number" value="37.7749" step="0.0001" />
+            <h3>Geo Location</h3>
+            <div class="helper-fields">
+              <div class="field"><label>Latitude</label><input id="h-geo-lat" type="number" value="37.7749" step="0.0001" /></div>
+              <div class="field"><label>Longitude</label><input id="h-geo-lng" type="number" value="-122.4194" step="0.0001" /></div>
             </div>
-            <div class="field">
-              <label>Lng</label
-              ><input id="h-geo-lng" type="number" value="-122.4194" step="0.0001" />
-            </div>
-            <div class="output" id="h-geo-out"></div>
+            <div class="helper-output" id="h-geo-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-geo">Copy</button><button class="btn-sm" data-helper-dl="h-geo">Download</button></div>
           </div>
-          <div class="helper-card">
+          <div class="helper-card wide">
             <h3>vCard</h3>
-            <div class="field"><label>First Name</label><input id="h-vc-fn" value="John" /></div>
-            <div class="field"><label>Last Name</label><input id="h-vc-ln" value="Doe" /></div>
-            <div class="field">
-              <label>Phone</label><input id="h-vc-phone" value="+1234567890" />
+            <div class="helper-fields">
+              <div class="field-row"><div class="field"><label>First Name</label><input id="h-vc-fn" value="John" /></div><div class="field"><label>Last Name</label><input id="h-vc-ln" value="Doe" /></div></div>
+              <div class="field-row"><div class="field"><label>Phone</label><input id="h-vc-phone" value="+1234567890" /></div><div class="field"><label>Email</label><input id="h-vc-email" value="john@example.com" /></div></div>
+              <div class="field-row"><div class="field"><label>Organization</label><input id="h-vc-org" placeholder="Optional" /></div><div class="field"><label>Title</label><input id="h-vc-title" placeholder="Optional" /></div></div>
+              <div class="field"><label>URL</label><input id="h-vc-url" placeholder="Optional" /></div>
             </div>
-            <div class="field">
-              <label>Email</label><input id="h-vc-email" value="john@example.com" />
-            </div>
-            <div class="output" id="h-vcard-out"></div>
+            <div class="helper-output" id="h-vcard-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-vcard">Copy</button><button class="btn-sm" data-helper-dl="h-vcard">Download</button></div>
           </div>
           <div class="helper-card">
-            <h3>Event</h3>
-            <div class="field"><label>Title</label><input id="h-ev-title" value="Meeting" /></div>
-            <div class="field">
-              <label>Start</label
-              ><input id="h-ev-start" type="datetime-local" value="2026-04-01T10:00" />
+            <h3>MeCard</h3>
+            <div class="helper-fields">
+              <div class="field"><label>Name</label><input id="h-mc-name" value="Doe,John" /></div>
+              <div class="field"><label>Phone</label><input id="h-mc-phone" value="+1234567890" /></div>
+              <div class="field"><label>Email</label><input id="h-mc-email" value="john@example.com" /></div>
             </div>
-            <div class="field">
-              <label>End</label
-              ><input id="h-ev-end" type="datetime-local" value="2026-04-01T11:00" />
+            <div class="helper-output" id="h-mecard-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-mecard">Copy</button><button class="btn-sm" data-helper-dl="h-mecard">Download</button></div>
+          </div>
+          <div class="helper-card wide">
+            <h3>Calendar Event</h3>
+            <div class="helper-fields">
+              <div class="field"><label>Title</label><input id="h-ev-title" value="Team Meeting" /></div>
+              <div class="field-row"><div class="field"><label>Start</label><input id="h-ev-start" type="datetime-local" value="2026-04-01T10:00" /></div><div class="field"><label>End</label><input id="h-ev-end" type="datetime-local" value="2026-04-01T11:00" /></div></div>
+              <div class="field"><label>Location</label><input id="h-ev-loc" placeholder="Optional" /></div>
             </div>
-            <div class="output" id="h-event-out"></div>
+            <div class="helper-output" id="h-event-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-event">Copy</button><button class="btn-sm" data-helper-dl="h-event">Download</button></div>
+          </div>
+          <div class="helper-card wide">
+            <h3>Swiss QR-Bill</h3>
+            <div class="helper-fields">
+              <div class="field"><label>IBAN</label><input id="h-sq-iban" value="CH9300762011623852957" /></div>
+              <div class="field-row"><div class="field"><label>Name</label><input id="h-sq-name" value="Max Muster" /></div><div class="field"><label>Country</label><input id="h-sq-country" value="CH" maxlength="2" /></div></div>
+              <div class="field-row"><div class="field"><label>Postal Code</label><input id="h-sq-zip" value="8001" /></div><div class="field"><label>City</label><input id="h-sq-city" value="Zurich" /></div></div>
+              <div class="field-row"><div class="field"><label>Amount</label><input id="h-sq-amount" type="number" value="100.00" step="0.01" /></div><div class="field"><label>Currency</label><select id="h-sq-currency"><option value="CHF">CHF</option><option value="EUR">EUR</option></select></div></div>
+            </div>
+            <div class="helper-output" id="h-swiss-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-swiss">Copy</button><button class="btn-sm" data-helper-dl="h-swiss">Download</button></div>
+          </div>
+          <div class="helper-card wide">
+            <h3>GS1 Digital Link</h3>
+            <div class="helper-fields">
+              <div class="field"><label>GTIN</label><input id="h-gs1-gtin" value="09506000134376" /></div>
+              <div class="field-row"><div class="field"><label>Batch</label><input id="h-gs1-batch" value="ABC123" /></div><div class="field"><label>Serial</label><input id="h-gs1-serial" value="12345" /></div></div>
+            </div>
+            <div class="helper-output" id="h-gs1-out"></div>
+            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-gs1">Copy</button><button class="btn-sm" data-helper-dl="h-gs1">Download</button></div>
           </div>
         </div>
       </section>
 
       <footer>
-        <a href="https://github.com/productdevbook/etiket">etiket</a> — Zero-dependency barcode
-        &amp; QR code SVG generator
+        <a href="https://github.com/productdevbook/etiket">etiket</a> &mdash; zero-dependency barcode &amp; QR code SVG generator
       </footer>
     </main>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
     <script type="module" src="/app/entry-client.ts"></script>
   </body>
 </html>
