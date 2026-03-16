@@ -9,9 +9,7 @@ describe("SVG injection prevention", () => {
 
   describe("escapeAttr utility", () => {
     it("escapes double quotes", () => {
-      expect(escapeAttr('#000" onload="alert(1)')).toBe(
-        "#000&quot; onload=&quot;alert(1)",
-      );
+      expect(escapeAttr('#000" onload="alert(1)')).toBe("#000&quot; onload=&quot;alert(1)");
     });
 
     it("escapes ampersands", () => {

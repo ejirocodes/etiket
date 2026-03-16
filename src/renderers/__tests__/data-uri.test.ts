@@ -30,8 +30,7 @@ describe("data URI encoding", () => {
   });
 
   it("handles UTF-8 content in base64 encoding", () => {
-    const utf8Svg =
-      '<svg xmlns="http://www.w3.org/2000/svg"><text>café über naïve</text></svg>';
+    const utf8Svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>café über naïve</text></svg>';
     const uri = svgToBase64(utf8Svg);
     expect(uri).toMatch(/^data:image\/svg\+xml;base64,/);
     // Round-trip: decode and verify the original string is preserved
@@ -43,13 +42,10 @@ describe("data URI encoding", () => {
   });
 
   it("handles UTF-8 content in raw base64 encoding", () => {
-    const utf8Svg =
-      '<svg xmlns="http://www.w3.org/2000/svg"><text>résumé</text></svg>';
+    const utf8Svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>résumé</text></svg>';
     const b64 = svgToBase64Raw(utf8Svg);
     expect(b64).toMatch(/^[A-Za-z0-9+/=]+$/);
-    const decoded = new TextDecoder().decode(
-      Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
-    );
+    const decoded = new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
     expect(decoded).toBe(utf8Svg);
   });
 });

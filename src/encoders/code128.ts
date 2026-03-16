@@ -294,7 +294,7 @@ function encodeCharsetA(text: string): number[] {
     } else {
       throw new InvalidInputError(
         `Character '${text[i]}' (code ${charCode}) is not encodable in Code 128A. ` +
-        `Code 128A supports control characters (0-31) and printable ASCII 32-95 (uppercase, digits, symbols).`,
+          `Code 128A supports control characters (0-31) and printable ASCII 32-95 (uppercase, digits, symbols).`,
       );
     }
   }
@@ -318,7 +318,7 @@ function encodeCharsetB(text: string): number[] {
     } else {
       throw new InvalidInputError(
         `Character code ${charCode} is not encodable in Code 128B. ` +
-        `Code 128B supports printable ASCII characters (32-127).`,
+          `Code 128B supports printable ASCII characters (32-127).`,
       );
     }
   }
@@ -338,16 +338,14 @@ function encodeCharsetC(text: string): number[] {
     if (c < 48 || c > 57) {
       throw new InvalidInputError(
         `Character '${text[i]}' is not encodable in Code 128C. ` +
-        `Code 128C supports only digits (0-9).`,
+          `Code 128C supports only digits (0-9).`,
       );
     }
   }
 
   // Validate: must be even length
   if (text.length % 2 !== 0) {
-    throw new InvalidInputError(
-      `Code 128C requires an even number of digits, got ${text.length}.`,
-    );
+    throw new InvalidInputError(`Code 128C requires an even number of digits, got ${text.length}.`);
   }
 
   const codes: number[] = [START_C];
