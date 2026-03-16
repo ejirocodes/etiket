@@ -4,8 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>etiket — Barcode & QR Code Playground</title>
-    <meta name="description" content="Zero-dependency barcode & QR code SVG generator. 20+ formats, styled QR codes, tree-shakeable." />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+    <meta
+      name="description"
+      content="Zero-dependency barcode & QR code SVG generator. 20+ formats, styled QR codes, tree-shakeable."
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>"
+    />
     <style>
       @import "~/app/assets/main.css";
     </style>
@@ -30,7 +37,13 @@
           <div class="controls">
             <div class="field full">
               <label for="bc-data">Data</label>
-              <input id="bc-data" type="text" value="Hello World" spellcheck="false" autocomplete="off" />
+              <input
+                id="bc-data"
+                type="text"
+                value="Hello World"
+                spellcheck="false"
+                autocomplete="off"
+              />
               <small id="bc-hint" class="hint"></small>
             </div>
 
@@ -165,7 +178,13 @@
           <div class="controls">
             <div class="field full">
               <label for="qr-data">Data</label>
-              <input id="qr-data" type="text" value="https://example.com" spellcheck="false" autocomplete="off" />
+              <input
+                id="qr-data"
+                type="text"
+                value="https://example.com"
+                spellcheck="false"
+                autocomplete="off"
+              />
             </div>
 
             <details class="section" open>
@@ -248,7 +267,14 @@
                     <div class="color-row" data-colorgroup="qr-fg" data-mode="linear" hidden>
                       <input id="qr-grad-start" type="color" value="#ff6b6b" />
                       <input id="qr-grad-end" type="color" value="#4ecdc4" />
-                      <input id="qr-grad-rot" type="number" value="45" min="0" max="360" placeholder="angle" />
+                      <input
+                        id="qr-grad-rot"
+                        type="number"
+                        value="45"
+                        min="0"
+                        max="360"
+                        placeholder="angle"
+                      />
                     </div>
                     <div class="color-row" data-colorgroup="qr-fg" data-mode="radial" hidden>
                       <input id="qr-radial-start" type="color" value="#667eea" />
@@ -271,7 +297,14 @@
                     <div class="color-row" data-colorgroup="qr-bg" data-mode="linear" hidden>
                       <input id="qr-bg-grad-start" type="color" value="#ffecd2" />
                       <input id="qr-bg-grad-end" type="color" value="#fcb69f" />
-                      <input id="qr-bg-grad-rot" type="number" value="135" min="0" max="360" placeholder="angle" />
+                      <input
+                        id="qr-bg-grad-rot"
+                        type="number"
+                        value="135"
+                        min="0"
+                        max="360"
+                        placeholder="angle"
+                      />
                     </div>
                     <div class="color-row" data-colorgroup="qr-bg" data-mode="radial" hidden>
                       <input id="qr-bg-radial-start" type="color" value="#ffffff" />
@@ -329,15 +362,32 @@
                 </div>
                 <div class="field full" id="qr-logo-path-wrap" hidden>
                   <label for="qr-logo-path">Path Data</label>
-                  <textarea id="qr-logo-path" rows="2" spellcheck="false" placeholder="M50 10 L90 90 L10 90 Z"></textarea>
+                  <textarea
+                    id="qr-logo-path"
+                    rows="2"
+                    spellcheck="false"
+                    placeholder="M50 10 L90 90 L10 90 Z"
+                  ></textarea>
                 </div>
                 <div class="field full" id="qr-logo-url-wrap" hidden>
                   <label for="qr-logo-url">Image URL</label>
-                  <input id="qr-logo-url" type="text" placeholder="data:image/png;base64,..." spellcheck="false" />
+                  <input
+                    id="qr-logo-url"
+                    type="text"
+                    placeholder="data:image/png;base64,..."
+                    spellcheck="false"
+                  />
                 </div>
                 <div class="field">
                   <label>Size <span class="range-val" id="qr-logo-size-val">0.3</span></label>
-                  <input id="qr-logo-size" type="range" min="0.1" max="0.5" step="0.05" value="0.3" />
+                  <input
+                    id="qr-logo-size"
+                    type="range"
+                    min="0.1"
+                    max="0.5"
+                    step="0.05"
+                    value="0.3"
+                  />
                 </div>
                 <div class="field">
                   <label for="qr-logo-margin">Margin</label>
@@ -363,7 +413,13 @@
           <div class="controls">
             <div class="field full">
               <label for="m2d-data">Data</label>
-              <input id="m2d-data" type="text" value="Hello World" spellcheck="false" autocomplete="off" />
+              <input
+                id="m2d-data"
+                type="text"
+                value="Hello World"
+                spellcheck="false"
+                autocomplete="off"
+              />
             </div>
 
             <div class="field full">
@@ -441,7 +497,10 @@
                 </div>
                 <div class="field">
                   <label for="m2d-pdf-compact">Compact</label>
-                  <select id="m2d-pdf-compact"><option value="false">No</option><option value="true">Yes</option></select>
+                  <select id="m2d-pdf-compact">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
                 </div>
               </div>
             </details>
@@ -460,7 +519,10 @@
                 </div>
                 <div class="field">
                   <label for="m2d-az-compact">Compact</label>
-                  <select id="m2d-az-compact"><option value="false">No</option><option value="true">Yes</option></select>
+                  <select id="m2d-az-compact">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                  </select>
                 </div>
               </div>
             </details>
@@ -488,7 +550,10 @@
               <div class="field-grid">
                 <div class="field">
                   <label for="m2d-rmqr-ec">EC Level</label>
-                  <select id="m2d-rmqr-ec"><option value="M">M</option><option value="H">H</option></select>
+                  <select id="m2d-rmqr-ec">
+                    <option value="M">M</option>
+                    <option value="H">H</option>
+                  </select>
                 </div>
               </div>
             </details>
@@ -584,107 +649,243 @@
           <div class="helper-card">
             <h3>WiFi</h3>
             <div class="helper-fields">
-              <div class="field"><label>SSID</label><input id="h-wifi-ssid" value="MyNetwork" /></div>
-              <div class="field"><label>Password</label><input id="h-wifi-pass" type="password" value="secret123" /></div>
-              <div class="field"><label>Encryption</label>
-                <select id="h-wifi-enc"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select>
+              <div class="field">
+                <label>SSID</label><input id="h-wifi-ssid" value="MyNetwork" />
+              </div>
+              <div class="field">
+                <label>Password</label><input id="h-wifi-pass" type="password" value="secret123" />
+              </div>
+              <div class="field">
+                <label>Encryption</label>
+                <select id="h-wifi-enc">
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">None</option>
+                </select>
               </div>
             </div>
             <div class="helper-output" id="h-wifi-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-wifi">Copy</button><button class="btn-sm" data-helper-dl="h-wifi">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-wifi">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-wifi">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>URL</h3>
-            <div class="helper-fields"><div class="field"><label>URL</label><input id="h-url" value="https://github.com" /></div></div>
+            <div class="helper-fields">
+              <div class="field">
+                <label>URL</label><input id="h-url" value="https://github.com" />
+              </div>
+            </div>
             <div class="helper-output" id="h-url-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-url">Copy</button><button class="btn-sm" data-helper-dl="h-url">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-url">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-url">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>Email</h3>
-            <div class="helper-fields"><div class="field"><label>Address</label><input id="h-email" value="hello@example.com" /></div></div>
+            <div class="helper-fields">
+              <div class="field">
+                <label>Address</label><input id="h-email" value="hello@example.com" />
+              </div>
+            </div>
             <div class="helper-output" id="h-email-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-email">Copy</button><button class="btn-sm" data-helper-dl="h-email">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-email">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-email">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>SMS</h3>
             <div class="helper-fields">
-              <div class="field"><label>Number</label><input id="h-sms-num" value="+1234567890" /></div>
+              <div class="field">
+                <label>Number</label><input id="h-sms-num" value="+1234567890" />
+              </div>
               <div class="field"><label>Body</label><input id="h-sms-body" value="Hello!" /></div>
             </div>
             <div class="helper-output" id="h-sms-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-sms">Copy</button><button class="btn-sm" data-helper-dl="h-sms">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-sms">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-sms">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>Phone</h3>
-            <div class="helper-fields"><div class="field"><label>Number</label><input id="h-phone" value="+1234567890" /></div></div>
+            <div class="helper-fields">
+              <div class="field">
+                <label>Number</label><input id="h-phone" value="+1234567890" />
+              </div>
+            </div>
             <div class="helper-output" id="h-phone-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-phone">Copy</button><button class="btn-sm" data-helper-dl="h-phone">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-phone">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-phone">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>Geo Location</h3>
             <div class="helper-fields">
-              <div class="field"><label>Latitude</label><input id="h-geo-lat" type="number" value="37.7749" step="0.0001" /></div>
-              <div class="field"><label>Longitude</label><input id="h-geo-lng" type="number" value="-122.4194" step="0.0001" /></div>
+              <div class="field">
+                <label>Latitude</label
+                ><input id="h-geo-lat" type="number" value="37.7749" step="0.0001" />
+              </div>
+              <div class="field">
+                <label>Longitude</label
+                ><input id="h-geo-lng" type="number" value="-122.4194" step="0.0001" />
+              </div>
             </div>
             <div class="helper-output" id="h-geo-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-geo">Copy</button><button class="btn-sm" data-helper-dl="h-geo">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-geo">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-geo">Download</button>
+            </div>
           </div>
           <div class="helper-card wide">
             <h3>vCard</h3>
             <div class="helper-fields">
-              <div class="field-row"><div class="field"><label>First Name</label><input id="h-vc-fn" value="John" /></div><div class="field"><label>Last Name</label><input id="h-vc-ln" value="Doe" /></div></div>
-              <div class="field-row"><div class="field"><label>Phone</label><input id="h-vc-phone" value="+1234567890" /></div><div class="field"><label>Email</label><input id="h-vc-email" value="john@example.com" /></div></div>
-              <div class="field-row"><div class="field"><label>Organization</label><input id="h-vc-org" placeholder="Optional" /></div><div class="field"><label>Title</label><input id="h-vc-title" placeholder="Optional" /></div></div>
-              <div class="field"><label>URL</label><input id="h-vc-url" placeholder="Optional" /></div>
+              <div class="field-row">
+                <div class="field">
+                  <label>First Name</label><input id="h-vc-fn" value="John" />
+                </div>
+                <div class="field"><label>Last Name</label><input id="h-vc-ln" value="Doe" /></div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Phone</label><input id="h-vc-phone" value="+1234567890" />
+                </div>
+                <div class="field">
+                  <label>Email</label><input id="h-vc-email" value="john@example.com" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Organization</label><input id="h-vc-org" placeholder="Optional" />
+                </div>
+                <div class="field">
+                  <label>Title</label><input id="h-vc-title" placeholder="Optional" />
+                </div>
+              </div>
+              <div class="field">
+                <label>URL</label><input id="h-vc-url" placeholder="Optional" />
+              </div>
             </div>
             <div class="helper-output" id="h-vcard-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-vcard">Copy</button><button class="btn-sm" data-helper-dl="h-vcard">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-vcard">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-vcard">Download</button>
+            </div>
           </div>
           <div class="helper-card">
             <h3>MeCard</h3>
             <div class="helper-fields">
               <div class="field"><label>Name</label><input id="h-mc-name" value="Doe,John" /></div>
-              <div class="field"><label>Phone</label><input id="h-mc-phone" value="+1234567890" /></div>
-              <div class="field"><label>Email</label><input id="h-mc-email" value="john@example.com" /></div>
+              <div class="field">
+                <label>Phone</label><input id="h-mc-phone" value="+1234567890" />
+              </div>
+              <div class="field">
+                <label>Email</label><input id="h-mc-email" value="john@example.com" />
+              </div>
             </div>
             <div class="helper-output" id="h-mecard-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-mecard">Copy</button><button class="btn-sm" data-helper-dl="h-mecard">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-mecard">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-mecard">Download</button>
+            </div>
           </div>
           <div class="helper-card wide">
             <h3>Calendar Event</h3>
             <div class="helper-fields">
-              <div class="field"><label>Title</label><input id="h-ev-title" value="Team Meeting" /></div>
-              <div class="field-row"><div class="field"><label>Start</label><input id="h-ev-start" type="datetime-local" value="2026-04-01T10:00" /></div><div class="field"><label>End</label><input id="h-ev-end" type="datetime-local" value="2026-04-01T11:00" /></div></div>
-              <div class="field"><label>Location</label><input id="h-ev-loc" placeholder="Optional" /></div>
+              <div class="field">
+                <label>Title</label><input id="h-ev-title" value="Team Meeting" />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Start</label
+                  ><input id="h-ev-start" type="datetime-local" value="2026-04-01T10:00" />
+                </div>
+                <div class="field">
+                  <label>End</label
+                  ><input id="h-ev-end" type="datetime-local" value="2026-04-01T11:00" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Location</label><input id="h-ev-loc" placeholder="Optional" />
+              </div>
             </div>
             <div class="helper-output" id="h-event-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-event">Copy</button><button class="btn-sm" data-helper-dl="h-event">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-event">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-event">Download</button>
+            </div>
           </div>
           <div class="helper-card wide">
             <h3>Swiss QR-Bill</h3>
             <div class="helper-fields">
-              <div class="field"><label>IBAN</label><input id="h-sq-iban" value="CH9300762011623852957" /></div>
-              <div class="field-row"><div class="field"><label>Name</label><input id="h-sq-name" value="Max Muster" /></div><div class="field"><label>Country</label><input id="h-sq-country" value="CH" maxlength="2" /></div></div>
-              <div class="field-row"><div class="field"><label>Postal Code</label><input id="h-sq-zip" value="8001" /></div><div class="field"><label>City</label><input id="h-sq-city" value="Zurich" /></div></div>
-              <div class="field-row"><div class="field"><label>Amount</label><input id="h-sq-amount" type="number" value="100.00" step="0.01" /></div><div class="field"><label>Currency</label><select id="h-sq-currency"><option value="CHF">CHF</option><option value="EUR">EUR</option></select></div></div>
+              <div class="field">
+                <label>IBAN</label><input id="h-sq-iban" value="CH9300762011623852957" />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Name</label><input id="h-sq-name" value="Max Muster" />
+                </div>
+                <div class="field">
+                  <label>Country</label><input id="h-sq-country" value="CH" maxlength="2" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Postal Code</label><input id="h-sq-zip" value="8001" />
+                </div>
+                <div class="field"><label>City</label><input id="h-sq-city" value="Zurich" /></div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Amount</label
+                  ><input id="h-sq-amount" type="number" value="100.00" step="0.01" />
+                </div>
+                <div class="field">
+                  <label>Currency</label
+                  ><select id="h-sq-currency">
+                    <option value="CHF">CHF</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
+              </div>
             </div>
             <div class="helper-output" id="h-swiss-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-swiss">Copy</button><button class="btn-sm" data-helper-dl="h-swiss">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-swiss">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-swiss">Download</button>
+            </div>
           </div>
           <div class="helper-card wide">
             <h3>GS1 Digital Link</h3>
             <div class="helper-fields">
-              <div class="field"><label>GTIN</label><input id="h-gs1-gtin" value="09506000134376" /></div>
-              <div class="field-row"><div class="field"><label>Batch</label><input id="h-gs1-batch" value="ABC123" /></div><div class="field"><label>Serial</label><input id="h-gs1-serial" value="12345" /></div></div>
+              <div class="field">
+                <label>GTIN</label><input id="h-gs1-gtin" value="09506000134376" />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label>Batch</label><input id="h-gs1-batch" value="ABC123" />
+                </div>
+                <div class="field">
+                  <label>Serial</label><input id="h-gs1-serial" value="12345" />
+                </div>
+              </div>
             </div>
             <div class="helper-output" id="h-gs1-out"></div>
-            <div class="helper-actions"><button class="btn-sm" data-helper-copy="h-gs1">Copy</button><button class="btn-sm" data-helper-dl="h-gs1">Download</button></div>
+            <div class="helper-actions">
+              <button class="btn-sm" data-helper-copy="h-gs1">Copy</button
+              ><button class="btn-sm" data-helper-dl="h-gs1">Download</button>
+            </div>
           </div>
         </div>
       </section>
 
       <footer>
-        <a href="https://github.com/productdevbook/etiket">etiket</a> &mdash; zero-dependency barcode &amp; QR code SVG generator
+        <a href="https://github.com/productdevbook/etiket">etiket</a> &mdash; zero-dependency
+        barcode &amp; QR code SVG generator
       </footer>
     </main>
 

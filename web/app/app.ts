@@ -52,38 +52,38 @@ import type { GradientOptions, LogoOptions } from "etiket";
 // ── Constants ──
 
 const BARCODE_DEFAULTS: Record<string, string> = {
-  "code128": "Hello World",
-  "code39": "HELLO",
-  "code39ext": "Hello!",
-  "code93": "HELLO",
-  "code93ext": "Hello!",
-  "code11": "0123456789",
-  "ean13": "5901234123457",
-  "ean8": "96385074",
-  "ean2": "53",
-  "ean5": "52495",
-  "upca": "012345678905",
-  "upce": "01234565",
-  "itf": "1234567890",
-  "itf14": "1234567890123",
-  "codabar": "A12345B",
-  "msi": "1234567",
-  "pharmacode": "1234",
-  "plessey": "01234567",
+  code128: "Hello World",
+  code39: "HELLO",
+  code39ext: "Hello!",
+  code93: "HELLO",
+  code93ext: "Hello!",
+  code11: "0123456789",
+  ean13: "5901234123457",
+  ean8: "96385074",
+  ean2: "53",
+  ean5: "52495",
+  upca: "012345678905",
+  upce: "01234565",
+  itf: "1234567890",
+  itf14: "1234567890123",
+  codabar: "A12345B",
+  msi: "1234567",
+  pharmacode: "1234",
+  plessey: "01234567",
   "gs1-128": "(01)12345678901231",
   "gs1-databar": "0123456789012",
   "gs1-databar-limited": "0123456789012",
   "gs1-databar-expanded": "(01)12345678901231",
-  "identcode": "563102430313",
-  "leitcode": "21348075016401",
-  "postnet": "12345",
-  "planet": "1234567890",
+  identcode: "563102430313",
+  leitcode: "21348075016401",
+  postnet: "12345",
+  planet: "1234567890",
   // 4-State
-  "rm4scc": "SW1A1AA",
-  "kix": "1234AB",
+  rm4scc: "SW1A1AA",
+  kix: "1234AB",
   "australia-post": "11:12345678",
   "japan-post": "1234567",
-  "imb": "01234567890123456789",
+  imb: "01234567890123456789",
   // Healthcare
   "hibc-primary": "A123:PROD001:1",
   "hibc-secondary": "260101:LOT123",
@@ -103,18 +103,18 @@ const FORMAT_HINTS: Record<string, string> = {
 };
 
 const M2D_DEFAULTS: Record<string, string> = {
-  "datamatrix": "Hello World",
-  "gs1datamatrix": "(01)12345678901231",
-  "pdf417": "Hello World",
-  "aztec": "Hello World",
-  "micropdf417": "Hello",
-  "rmqr": "HELLO",
-  "maxicode": "Hello MaxiCode",
-  "dotcode": "HELLO",
-  "hanxin": "Hello",
-  "jabcode": "Hello",
-  "codablockf": "HELLO WORLD",
-  "code16k": "HELLO",
+  datamatrix: "Hello World",
+  gs1datamatrix: "(01)12345678901231",
+  pdf417: "Hello World",
+  aztec: "Hello World",
+  micropdf417: "Hello",
+  rmqr: "HELLO",
+  maxicode: "Hello MaxiCode",
+  dotcode: "HELLO",
+  hanxin: "Hello",
+  jabcode: "Hello",
+  codablockf: "HELLO WORLD",
+  code16k: "HELLO",
   "gs1-composite": "(17)260101(10)BATCH01",
 };
 
@@ -165,10 +165,14 @@ function listen(ids: string[], fn: () => void) {
 
 function setupCopyDownload(prefix: string, getFn: () => string) {
   $(`${prefix}-copy`).addEventListener("click", () => {
-    try { copySVG(getFn()); } catch {}
+    try {
+      copySVG(getFn());
+    } catch {}
   });
   $(`${prefix}-download`).addEventListener("click", () => {
-    try { downloadSVG(getFn(), prefix); } catch {}
+    try {
+      downloadSVG(getFn(), prefix);
+    } catch {}
   });
 }
 
@@ -187,10 +191,22 @@ function renderFourStateSVG(states: string[], color: string): string {
       let y: number;
       let bh: number;
       switch (s) {
-        case "F": y = 0; bh = h; break;
-        case "A": y = 0; bh = h * 0.6; break;
-        case "D": y = h * 0.4; bh = h * 0.6; break;
-        default: y = h * 0.25; bh = h * 0.5; break; // T
+        case "F":
+          y = 0;
+          bh = h;
+          break;
+        case "A":
+          y = 0;
+          bh = h * 0.6;
+          break;
+        case "D":
+          y = h * 0.4;
+          bh = h * 0.6;
+          break;
+        default:
+          y = h * 0.25;
+          bh = h * 0.5;
+          break; // T
       }
       return `<rect x="${x}" y="${y + m}" width="${bw}" height="${bh}" fill="${color}"/>`;
     })
@@ -225,7 +241,9 @@ function setupTabs() {
       tabs.forEach((t) => t.classList.remove("active"));
       panels.forEach((p) => p.classList.remove("active"));
       tab.classList.add("active");
-      document.querySelector<HTMLElement>(`[data-panel="${tab.dataset.tab}"]`)!.classList.add("active");
+      document
+        .querySelector<HTMLElement>(`[data-panel="${tab.dataset.tab}"]`)!
+        .classList.add("active");
     });
   }
 }
@@ -234,8 +252,13 @@ function setupTabs() {
 
 const FOURSTATE_TYPES = new Set(["rm4scc", "kix", "australia-post", "japan-post", "imb"]);
 const HEALTHCARE_TYPES = new Set([
-  "hibc-primary", "hibc-secondary", "hibc-concatenated",
-  "isbt-din", "isbt-component", "isbt-expiry", "isbt-bloodgroup",
+  "hibc-primary",
+  "hibc-secondary",
+  "hibc-concatenated",
+  "isbt-din",
+  "isbt-component",
+  "isbt-expiry",
+  "isbt-bloodgroup",
 ]);
 
 function generateBarcode(data: string, type: string, opts: any): string {
@@ -243,16 +266,25 @@ function generateBarcode(data: string, type: string, opts: any): string {
   if (FOURSTATE_TYPES.has(type)) {
     let states: string[];
     switch (type) {
-      case "rm4scc": states = encodeRM4SCC(data) as string[]; break;
-      case "kix": states = encodeKIX(data) as string[]; break;
+      case "rm4scc":
+        states = encodeRM4SCC(data) as string[];
+        break;
+      case "kix":
+        states = encodeKIX(data) as string[];
+        break;
       case "australia-post": {
         const [fcc, dpid] = data.split(":");
         states = encodeAustraliaPost(fcc, dpid) as string[];
         break;
       }
-      case "japan-post": states = encodeJapanPost(data) as string[]; break;
-      case "imb": states = encodeIMb(data) as string[]; break;
-      default: states = [];
+      case "japan-post":
+        states = encodeJapanPost(data) as string[];
+        break;
+      case "imb":
+        states = encodeIMb(data) as string[];
+        break;
+      default:
+        states = [];
     }
     return renderFourStateSVG(states, opts.color ?? "#000");
   }
@@ -281,10 +313,17 @@ function generateBarcode(data: string, type: string, opts: any): string {
         encoded = encodeISBT128DIN(cc, facility, year, donation);
         break;
       }
-      case "isbt-component": encoded = encodeISBT128Component(data); break;
-      case "isbt-expiry": encoded = encodeISBT128Expiry(data); break;
-      case "isbt-bloodgroup": encoded = encodeISBT128BloodGroup(data); break;
-      default: encoded = data;
+      case "isbt-component":
+        encoded = encodeISBT128Component(data);
+        break;
+      case "isbt-expiry":
+        encoded = encodeISBT128Expiry(data);
+        break;
+      case "isbt-bloodgroup":
+        encoded = encodeISBT128BloodGroup(data);
+        break;
+      default:
+        encoded = data;
     }
     return barcode(encoded, { ...opts, type: "code128" });
   }
@@ -309,7 +348,9 @@ function getBarcodeOpts() {
 
 function setupBarcode() {
   const render = () =>
-    renderSafe($("bc-output"), () => generateBarcode(val("bc-data"), val("bc-type"), getBarcodeOpts()));
+    renderSafe($("bc-output"), () =>
+      generateBarcode(val("bc-data"), val("bc-type"), getBarcodeOpts()),
+    );
 
   $("bc-type").addEventListener("change", () => {
     const type = val("bc-type");
@@ -320,7 +361,18 @@ function setupBarcode() {
   });
 
   listen(
-    ["bc-data", "bc-height", "bc-barwidth", "bc-color", "bc-bg", "bc-rotation", "bc-showtext", "bc-margin", "bc-mt", "bc-mb"],
+    [
+      "bc-data",
+      "bc-height",
+      "bc-barwidth",
+      "bc-color",
+      "bc-bg",
+      "bc-rotation",
+      "bc-showtext",
+      "bc-margin",
+      "bc-mt",
+      "bc-mb",
+    ],
     render,
   );
   setupCopyDownload("bc", () => generateBarcode(val("bc-data"), val("bc-type"), getBarcodeOpts()));
@@ -331,16 +383,46 @@ function setupBarcode() {
 
 function getQRColor(): string | GradientOptions {
   const mode = val("qr-colormode");
-  if (mode === "linear") return { type: "linear", rotation: numVal("qr-grad-rot"), stops: [{ offset: 0, color: val("qr-grad-start") }, { offset: 1, color: val("qr-grad-end") }] };
-  if (mode === "radial") return { type: "radial", stops: [{ offset: 0, color: val("qr-radial-start") }, { offset: 1, color: val("qr-radial-end") }] };
+  if (mode === "linear")
+    return {
+      type: "linear",
+      rotation: numVal("qr-grad-rot"),
+      stops: [
+        { offset: 0, color: val("qr-grad-start") },
+        { offset: 1, color: val("qr-grad-end") },
+      ],
+    };
+  if (mode === "radial")
+    return {
+      type: "radial",
+      stops: [
+        { offset: 0, color: val("qr-radial-start") },
+        { offset: 1, color: val("qr-radial-end") },
+      ],
+    };
   return val("qr-color");
 }
 
 function getQRBg(): string | GradientOptions | "transparent" {
   const mode = val("qr-bgmode");
   if (mode === "transparent") return "transparent";
-  if (mode === "linear") return { type: "linear", rotation: numVal("qr-bg-grad-rot"), stops: [{ offset: 0, color: val("qr-bg-grad-start") }, { offset: 1, color: val("qr-bg-grad-end") }] };
-  if (mode === "radial") return { type: "radial", stops: [{ offset: 0, color: val("qr-bg-radial-start") }, { offset: 1, color: val("qr-bg-radial-end") }] };
+  if (mode === "linear")
+    return {
+      type: "linear",
+      rotation: numVal("qr-bg-grad-rot"),
+      stops: [
+        { offset: 0, color: val("qr-bg-grad-start") },
+        { offset: 1, color: val("qr-bg-grad-end") },
+      ],
+    };
+  if (mode === "radial")
+    return {
+      type: "radial",
+      stops: [
+        { offset: 0, color: val("qr-bg-radial-start") },
+        { offset: 1, color: val("qr-bg-radial-end") },
+      ],
+    };
   return val("qr-bg");
 }
 
@@ -362,8 +444,15 @@ function getQRLogo(): LogoOptions | undefined {
   const t = val("qr-logo-type");
   if (t === "none") return undefined;
   const logo: LogoOptions = { size: Number(val("qr-logo-size")), margin: numVal("qr-logo-margin") };
-  if (t === "path") { const p = val("qr-logo-path"); if (!p) return undefined; logo.path = p; }
-  else if (t === "url") { const u = val("qr-logo-url"); if (!u) return undefined; logo.imageUrl = u; }
+  if (t === "path") {
+    const p = val("qr-logo-path");
+    if (!p) return undefined;
+    logo.path = p;
+  } else if (t === "url") {
+    const u = val("qr-logo-url");
+    if (!u) return undefined;
+    logo.imageUrl = u;
+  }
   return logo;
 }
 
@@ -373,7 +462,11 @@ function generateQR(): string {
 
   if (isMicro) {
     const matrix = encodeMicroQR(data, { ecLevel: val("qr-ec") as any });
-    return renderMatrixSVG(matrix, { size: numVal("qr-size"), color: val("qr-color"), margin: numVal("qr-margin") });
+    return renderMatrixSVG(matrix, {
+      size: numVal("qr-size"),
+      color: val("qr-color"),
+      margin: numVal("qr-margin"),
+    });
   }
 
   return qrcode(data, {
@@ -394,7 +487,10 @@ function setupQR() {
   const render = () => renderSafe($("qr-output"), generateQR);
 
   // Color mode toggles
-  for (const [selectId, group] of [["qr-colormode", "qr-fg"], ["qr-bgmode", "qr-bg"]] as const) {
+  for (const [selectId, group] of [
+    ["qr-colormode", "qr-fg"],
+    ["qr-bgmode", "qr-bg"],
+  ] as const) {
     $(selectId).addEventListener("change", () => {
       const mode = val(selectId);
       document.querySelectorAll<HTMLElement>(`[data-colorgroup="${group}"]`).forEach((el) => {
@@ -412,16 +508,46 @@ function setupQR() {
   });
 
   // Range displays
-  $("qr-dotsize").addEventListener("input", () => { $("qr-dotsize-val").textContent = Number(val("qr-dotsize")).toFixed(1); });
-  $("qr-logo-size").addEventListener("input", () => { $("qr-logo-size-val").textContent = Number(val("qr-logo-size")).toFixed(2); });
+  $("qr-dotsize").addEventListener("input", () => {
+    $("qr-dotsize-val").textContent = Number(val("qr-dotsize")).toFixed(1);
+  });
+  $("qr-logo-size").addEventListener("input", () => {
+    $("qr-logo-size-val").textContent = Number(val("qr-logo-size")).toFixed(2);
+  });
 
-  listen([
-    "qr-data", "qr-size", "qr-margin", "qr-ec", "qr-shape", "qr-micro", "qr-dot", "qr-dotsize",
-    "qr-color", "qr-bg", "qr-grad-start", "qr-grad-end", "qr-grad-rot", "qr-radial-start", "qr-radial-end",
-    "qr-bg-grad-start", "qr-bg-grad-end", "qr-bg-grad-rot", "qr-bg-radial-start", "qr-bg-radial-end",
-    "qr-corner-outer", "qr-corner-inner", "qr-corner-color", "qr-corner-inner-color",
-    "qr-logo-path", "qr-logo-url", "qr-logo-size", "qr-logo-margin",
-  ], render);
+  listen(
+    [
+      "qr-data",
+      "qr-size",
+      "qr-margin",
+      "qr-ec",
+      "qr-shape",
+      "qr-micro",
+      "qr-dot",
+      "qr-dotsize",
+      "qr-color",
+      "qr-bg",
+      "qr-grad-start",
+      "qr-grad-end",
+      "qr-grad-rot",
+      "qr-radial-start",
+      "qr-radial-end",
+      "qr-bg-grad-start",
+      "qr-bg-grad-end",
+      "qr-bg-grad-rot",
+      "qr-bg-radial-start",
+      "qr-bg-radial-end",
+      "qr-corner-outer",
+      "qr-corner-inner",
+      "qr-corner-color",
+      "qr-corner-inner-color",
+      "qr-logo-path",
+      "qr-logo-url",
+      "qr-logo-size",
+      "qr-logo-margin",
+    ],
+    render,
+  );
 
   setupCopyDownload("qr", generateQR);
   render();
@@ -430,45 +556,85 @@ function setupQR() {
 // ── 2D Codes ──
 
 const M2D_OPTION_PANELS: Record<string, string> = {
-  "pdf417": "m2d-pdf417-opts",
-  "aztec": "m2d-aztec-opts",
-  "micropdf417": "m2d-mpdf-opts",
-  "rmqr": "m2d-rmqr-opts",
-  "maxicode": "m2d-maxi-opts",
-  "hanxin": "m2d-hanxin-opts",
-  "jabcode": "m2d-jab-opts",
+  pdf417: "m2d-pdf417-opts",
+  aztec: "m2d-aztec-opts",
+  micropdf417: "m2d-mpdf-opts",
+  rmqr: "m2d-rmqr-opts",
+  maxicode: "m2d-maxi-opts",
+  hanxin: "m2d-hanxin-opts",
+  jabcode: "m2d-jab-opts",
   "gs1-composite": "m2d-composite-opts",
-  "codablockf": "m2d-codablockf-opts",
+  codablockf: "m2d-codablockf-opts",
 };
 
 function generate2D(): string {
   const format = val("m2d-format");
   const data = val("m2d-data");
-  const svgOpts = { size: numVal("m2d-size"), color: val("m2d-color"), background: val("m2d-bg"), margin: numVal("m2d-margin") };
+  const svgOpts = {
+    size: numVal("m2d-size"),
+    color: val("m2d-color"),
+    background: val("m2d-bg"),
+    margin: numVal("m2d-margin"),
+  };
 
   switch (format) {
-    case "datamatrix": return datamatrix(data, svgOpts);
-    case "gs1datamatrix": return gs1datamatrix(data, svgOpts);
-    case "pdf417": return pdf417(data, { ...svgOpts, width: svgOpts.size, ecLevel: numVal("m2d-pdf-ec"), columns: optNum("m2d-pdf-cols"), compact: val("m2d-pdf-compact") === "true" });
-    case "aztec": return aztec(data, { ...svgOpts, ecPercent: numVal("m2d-az-ec"), layers: optNum("m2d-az-layers"), compact: val("m2d-az-compact") === "true" });
+    case "datamatrix":
+      return datamatrix(data, svgOpts);
+    case "gs1datamatrix":
+      return gs1datamatrix(data, svgOpts);
+    case "pdf417":
+      return pdf417(data, {
+        ...svgOpts,
+        width: svgOpts.size,
+        ecLevel: numVal("m2d-pdf-ec"),
+        columns: optNum("m2d-pdf-cols"),
+        compact: val("m2d-pdf-compact") === "true",
+      });
+    case "aztec":
+      return aztec(data, {
+        ...svgOpts,
+        ecPercent: numVal("m2d-az-ec"),
+        layers: optNum("m2d-az-layers"),
+        compact: val("m2d-az-compact") === "true",
+      });
     case "micropdf417": {
       const cols = optNum("m2d-mpdf-cols");
       const r = encodeMicroPDF417(data, cols ? { columns: cols as any } : undefined);
       return renderMatrixSVG(r.matrix, svgOpts);
     }
-    case "rmqr": return renderMatrixSVG(encodeRMQR(data, { ecLevel: val("m2d-rmqr-ec") as any }), svgOpts);
-    case "maxicode": return renderMatrixSVG(encodeMaxiCode(data, { mode: numVal("m2d-maxi-mode") as any }), svgOpts);
-    case "dotcode": return renderMatrixSVG(encodeDotCode(data), svgOpts);
-    case "hanxin": return renderMatrixSVG(encodeHanXin(data, { ecLevel: numVal("m2d-hanxin-ec") as any }), svgOpts);
-    case "jabcode": return renderJABCodeSVG(encodeJABCode(data, { colors: numVal("m2d-jab-colors") as any }), svgOpts.size);
+    case "rmqr":
+      return renderMatrixSVG(encodeRMQR(data, { ecLevel: val("m2d-rmqr-ec") as any }), svgOpts);
+    case "maxicode":
+      return renderMatrixSVG(
+        encodeMaxiCode(data, { mode: numVal("m2d-maxi-mode") as any }),
+        svgOpts,
+      );
+    case "dotcode":
+      return renderMatrixSVG(encodeDotCode(data), svgOpts);
+    case "hanxin":
+      return renderMatrixSVG(
+        encodeHanXin(data, { ecLevel: numVal("m2d-hanxin-ec") as any }),
+        svgOpts,
+      );
+    case "jabcode":
+      return renderJABCodeSVG(
+        encodeJABCode(data, { colors: numVal("m2d-jab-colors") as any }),
+        svgOpts.size,
+      );
     case "codablockf": {
       const cols = optNum("m2d-cbf-cols");
       const r = encodeCodablockF(data, cols ? { columns: cols } : undefined);
       return renderMatrixSVG(r.matrix, svgOpts);
     }
-    case "code16k": return renderMatrixSVG(encodeCode16K(data).matrix, svgOpts);
-    case "gs1-composite": return renderMatrixSVG(encodeGS1Composite(data, val("m2d-comp-type") as any).composite, svgOpts);
-    default: return datamatrix(data, svgOpts);
+    case "code16k":
+      return renderMatrixSVG(encodeCode16K(data).matrix, svgOpts);
+    case "gs1-composite":
+      return renderMatrixSVG(
+        encodeGS1Composite(data, val("m2d-comp-type") as any).composite,
+        svgOpts,
+      );
+    default:
+      return datamatrix(data, svgOpts);
   }
 }
 
@@ -494,13 +660,30 @@ function setup2D() {
     render();
   });
 
-  listen([
-    "m2d-data", "m2d-format", "m2d-size", "m2d-margin", "m2d-color", "m2d-bg",
-    "m2d-pdf-ec", "m2d-pdf-cols", "m2d-pdf-compact",
-    "m2d-az-ec", "m2d-az-layers", "m2d-az-compact",
-    "m2d-mpdf-cols", "m2d-rmqr-ec", "m2d-maxi-mode", "m2d-hanxin-ec",
-    "m2d-jab-colors", "m2d-comp-type", "m2d-cbf-cols",
-  ], render);
+  listen(
+    [
+      "m2d-data",
+      "m2d-format",
+      "m2d-size",
+      "m2d-margin",
+      "m2d-color",
+      "m2d-bg",
+      "m2d-pdf-ec",
+      "m2d-pdf-cols",
+      "m2d-pdf-compact",
+      "m2d-az-ec",
+      "m2d-az-layers",
+      "m2d-az-compact",
+      "m2d-mpdf-cols",
+      "m2d-rmqr-ec",
+      "m2d-maxi-mode",
+      "m2d-hanxin-ec",
+      "m2d-jab-colors",
+      "m2d-comp-type",
+      "m2d-cbf-cols",
+    ],
+    render,
+  );
 
   setupCopyDownload("m2d", generate2D);
   render();
@@ -523,53 +706,126 @@ function renderHelper(id: string, fn: () => string) {
 }
 
 function setupHelpers() {
-  const rWifi = () => renderHelper("h-wifi", () => wifi(val("h-wifi-ssid"), val("h-wifi-pass"), { encryption: val("h-wifi-enc") as any }));
-  listen(["h-wifi-ssid", "h-wifi-pass", "h-wifi-enc"], rWifi); rWifi();
+  const rWifi = () =>
+    renderHelper("h-wifi", () =>
+      wifi(val("h-wifi-ssid"), val("h-wifi-pass"), { encryption: val("h-wifi-enc") as any }),
+    );
+  listen(["h-wifi-ssid", "h-wifi-pass", "h-wifi-enc"], rWifi);
+  rWifi();
 
   const rUrl = () => renderHelper("h-url", () => url(val("h-url")));
-  listen(["h-url"], rUrl); rUrl();
+  listen(["h-url"], rUrl);
+  rUrl();
 
   const rEmail = () => renderHelper("h-email", () => email(val("h-email")));
-  listen(["h-email"], rEmail); rEmail();
+  listen(["h-email"], rEmail);
+  rEmail();
 
-  const rSms = () => renderHelper("h-sms", () => sms(val("h-sms-num"), val("h-sms-body") || undefined));
-  listen(["h-sms-num", "h-sms-body"], rSms); rSms();
+  const rSms = () =>
+    renderHelper("h-sms", () => sms(val("h-sms-num"), val("h-sms-body") || undefined));
+  listen(["h-sms-num", "h-sms-body"], rSms);
+  rSms();
 
   const rPhone = () => renderHelper("h-phone", () => phone(val("h-phone")));
-  listen(["h-phone"], rPhone); rPhone();
+  listen(["h-phone"], rPhone);
+  rPhone();
 
   const rGeo = () => renderHelper("h-geo", () => geo(numVal("h-geo-lat"), numVal("h-geo-lng")));
-  listen(["h-geo-lat", "h-geo-lng"], rGeo); rGeo();
+  listen(["h-geo-lat", "h-geo-lng"], rGeo);
+  rGeo();
 
-  const rVcard = () => renderHelper("h-vcard", () => vcard({
-    firstName: val("h-vc-fn"), lastName: val("h-vc-ln") || undefined,
-    phone: val("h-vc-phone") || undefined, email: val("h-vc-email") || undefined,
-    org: val("h-vc-org") || undefined, title: val("h-vc-title") || undefined, url: val("h-vc-url") || undefined,
-  }));
-  listen(["h-vc-fn", "h-vc-ln", "h-vc-phone", "h-vc-email", "h-vc-org", "h-vc-title", "h-vc-url"], rVcard); rVcard();
+  const rVcard = () =>
+    renderHelper("h-vcard", () =>
+      vcard({
+        firstName: val("h-vc-fn"),
+        lastName: val("h-vc-ln") || undefined,
+        phone: val("h-vc-phone") || undefined,
+        email: val("h-vc-email") || undefined,
+        org: val("h-vc-org") || undefined,
+        title: val("h-vc-title") || undefined,
+        url: val("h-vc-url") || undefined,
+      }),
+    );
+  listen(
+    ["h-vc-fn", "h-vc-ln", "h-vc-phone", "h-vc-email", "h-vc-org", "h-vc-title", "h-vc-url"],
+    rVcard,
+  );
+  rVcard();
 
-  const rMecard = () => renderHelper("h-mecard", () => mecard({ name: val("h-mc-name"), phone: val("h-mc-phone") || undefined, email: val("h-mc-email") || undefined }));
-  listen(["h-mc-name", "h-mc-phone", "h-mc-email"], rMecard); rMecard();
+  const rMecard = () =>
+    renderHelper("h-mecard", () =>
+      mecard({
+        name: val("h-mc-name"),
+        phone: val("h-mc-phone") || undefined,
+        email: val("h-mc-email") || undefined,
+      }),
+    );
+  listen(["h-mc-name", "h-mc-phone", "h-mc-email"], rMecard);
+  rMecard();
 
-  const rEvent = () => renderHelper("h-event", () => event({ title: val("h-ev-title"), start: val("h-ev-start"), end: val("h-ev-end") || undefined, location: val("h-ev-loc") || undefined }));
-  listen(["h-ev-title", "h-ev-start", "h-ev-end", "h-ev-loc"], rEvent); rEvent();
+  const rEvent = () =>
+    renderHelper("h-event", () =>
+      event({
+        title: val("h-ev-title"),
+        start: val("h-ev-start"),
+        end: val("h-ev-end") || undefined,
+        location: val("h-ev-loc") || undefined,
+      }),
+    );
+  listen(["h-ev-title", "h-ev-start", "h-ev-end", "h-ev-loc"], rEvent);
+  rEvent();
 
-  const rSwiss = () => renderHelper("h-swiss", () => swissQR({
-    iban: val("h-sq-iban"),
-    creditor: { name: val("h-sq-name"), postalCode: val("h-sq-zip"), city: val("h-sq-city"), country: val("h-sq-country") },
-    amount: numVal("h-sq-amount"), currency: val("h-sq-currency") as any,
-  }));
-  listen(["h-sq-iban", "h-sq-name", "h-sq-zip", "h-sq-city", "h-sq-country", "h-sq-amount", "h-sq-currency"], rSwiss); rSwiss();
+  const rSwiss = () =>
+    renderHelper("h-swiss", () =>
+      swissQR({
+        iban: val("h-sq-iban"),
+        creditor: {
+          name: val("h-sq-name"),
+          postalCode: val("h-sq-zip"),
+          city: val("h-sq-city"),
+          country: val("h-sq-country"),
+        },
+        amount: numVal("h-sq-amount"),
+        currency: val("h-sq-currency") as any,
+      }),
+    );
+  listen(
+    [
+      "h-sq-iban",
+      "h-sq-name",
+      "h-sq-zip",
+      "h-sq-city",
+      "h-sq-country",
+      "h-sq-amount",
+      "h-sq-currency",
+    ],
+    rSwiss,
+  );
+  rSwiss();
 
-  const rGS1 = () => renderHelper("h-gs1", () => gs1DigitalLink({ gtin: val("h-gs1-gtin"), batch: val("h-gs1-batch") || undefined, serial: val("h-gs1-serial") || undefined }));
-  listen(["h-gs1-gtin", "h-gs1-batch", "h-gs1-serial"], rGS1); rGS1();
+  const rGS1 = () =>
+    renderHelper("h-gs1", () =>
+      gs1DigitalLink({
+        gtin: val("h-gs1-gtin"),
+        batch: val("h-gs1-batch") || undefined,
+        serial: val("h-gs1-serial") || undefined,
+      }),
+    );
+  listen(["h-gs1-gtin", "h-gs1-batch", "h-gs1-serial"], rGS1);
+  rGS1();
 
   // Delegation for copy/download
   document.querySelectorAll<HTMLButtonElement>("[data-helper-copy]").forEach((btn) => {
-    btn.addEventListener("click", () => { const svg = helperSVGs.get(btn.dataset.helperCopy!); if (svg) copySVG(svg); });
+    btn.addEventListener("click", () => {
+      const svg = helperSVGs.get(btn.dataset.helperCopy!);
+      if (svg) copySVG(svg);
+    });
   });
   document.querySelectorAll<HTMLButtonElement>("[data-helper-dl]").forEach((btn) => {
-    btn.addEventListener("click", () => { const svg = helperSVGs.get(btn.dataset.helperDl!); if (svg) downloadSVG(svg, btn.dataset.helperDl!); });
+    btn.addEventListener("click", () => {
+      const svg = helperSVGs.get(btn.dataset.helperDl!);
+      if (svg) downloadSVG(svg, btn.dataset.helperDl!);
+    });
   });
 }
 

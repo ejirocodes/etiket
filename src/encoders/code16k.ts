@@ -2,17 +2,45 @@
  * Code 16K encoder — stacked barcode based on Code 128
  * Used in healthcare and electronics
  *
- * Structure: 2-16 rows, each row has start pattern + data + check + stop
- * Each row encodes 5 Code 128 symbol characters
+ * Structure: 2-16 rows, each with start pattern + 5 symbol characters + stop pattern
+ * Uses Code 128 bar patterns with row-specific start codes
  */
 
 import { InvalidInputError, CapacityError } from "../errors";
 
-// Simplified Code 16K: similar to Codablock F but with fixed 5 codewords per row
-// and specific start/stop patterns
+// Code 128 encoding patterns (bar/space widths)
+// Each pattern is 6 elements: bar, space, bar, space, bar, space (11 modules total)
+// prettier-ignore
+const PATTERNS: number[][] = [
+  [2,1,2,2,2,2],[2,2,2,1,2,2],[2,2,2,2,2,1],[1,2,1,2,2,3],[1,2,1,3,2,2],
+  [1,3,1,2,2,2],[1,2,2,2,1,3],[1,2,2,3,1,2],[1,3,2,2,1,2],[2,2,1,2,1,3],
+  [2,2,1,3,1,2],[2,3,1,2,1,2],[1,1,2,2,3,2],[1,2,2,1,3,2],[1,2,2,2,3,1],
+  [1,1,3,2,2,2],[1,2,3,1,2,2],[1,2,3,2,2,1],[2,2,3,2,1,1],[2,2,1,1,3,2],
+  [2,2,1,2,3,1],[2,1,3,2,1,2],[2,2,3,1,1,2],[3,1,2,1,3,1],[3,1,1,2,2,2],
+  [3,2,1,1,2,2],[3,2,1,2,2,1],[3,1,2,2,1,2],[3,2,2,1,1,2],[3,2,2,2,1,1],
+  [2,1,2,1,2,3],[2,1,2,3,2,1],[2,3,2,1,2,1],[1,1,1,3,2,3],[1,3,1,1,2,3],
+  [1,3,1,3,2,1],[1,1,2,3,1,3],[1,3,2,1,1,3],[1,3,2,3,1,1],[2,1,1,3,1,3],
+  [2,3,1,1,1,3],[2,3,1,3,1,1],[1,1,2,1,3,3],[1,1,2,3,3,1],[1,3,2,1,3,1],
+  [1,1,3,1,2,3],[1,1,3,3,2,1],[1,3,3,1,2,1],[3,1,3,1,2,1],[2,1,1,3,3,1],
+  [2,3,1,1,3,1],[2,1,3,1,1,3],[2,1,3,3,1,1],[2,1,3,1,3,1],[3,1,1,1,2,3],
+  [3,1,1,3,2,1],[3,3,1,1,2,1],[3,1,2,1,1,3],[3,1,2,3,1,1],[3,3,2,1,1,1],
+  [2,1,2,1,3,2],[2,1,2,2,3,1],[2,1,2,3,1,2],[1,4,2,1,1,2],[1,1,4,2,1,2],
+  [1,2,4,1,1,2],[1,1,1,2,4,2],[1,2,1,1,4,2],[1,2,1,2,4,1],[4,2,1,1,1,2],
+  [4,2,1,2,1,1],[4,1,2,1,1,2],[2,4,1,2,1,1],[2,2,1,4,1,1],[4,1,1,2,1,2],
+  [1,1,1,2,2,4],[1,1,1,4,2,2],[1,2,1,1,2,4],[1,2,1,4,2,1],[1,4,1,1,2,2],
+  [1,4,1,2,2,1],[1,1,2,2,1,4],[1,1,2,4,1,2],[1,2,2,1,1,4],[1,2,2,4,1,1],
+  [1,4,2,1,1,2],[1,4,2,2,1,1],[2,4,1,1,1,2],[2,2,1,1,1,4],[4,1,1,2,2,1],
+  [4,2,2,1,1,1],[2,1,2,1,4,1],[2,1,4,1,2,1],[4,1,2,1,2,1],[1,1,1,1,4,3],
+  [1,1,1,3,4,1],[1,3,1,1,4,1],[1,1,4,1,1,3],[1,1,4,3,1,1],[4,1,1,1,1,3],
+  [4,1,1,3,1,1],[1,1,3,1,4,1],[1,1,4,1,3,1],[2,1,1,4,1,2],[2,1,1,2,1,4],
+  [2,1,1,2,3,2],
+];
 
-const CODE16K_START = [2, 1, 2, 2, 2, 2]; // Start pattern (same as Code 128 value 0)
-const CODE16K_STOP = [2, 3, 3, 1, 1, 1, 2]; // Stop pattern
+const STOP_PATTERN = [2, 3, 3, 1, 1, 1, 2]; // 7 elements, 13 modules
+
+// Code 16K uses Code 128 value 96 (CODE_A) as the start for each row
+// The first data codeword in each row encodes mode + row information
+const CODE_B = 100;
 
 export interface Code16KResult {
   matrix: boolean[][];
@@ -41,7 +69,7 @@ export function encodeCode16K(text: string): Code16KResult {
     values.push(code - 32);
   }
 
-  // 5 data codewords per row, max 16 rows = 80 data codewords
+  // 5 data symbol characters per row, max 16 rows
   const cwPerRow = 5;
   const rows = Math.min(16, Math.max(2, Math.ceil(values.length / cwPerRow)));
 
@@ -51,57 +79,55 @@ export function encodeCode16K(text: string): Code16KResult {
 
   // Pad to fill rows
   while (values.length < rows * cwPerRow) {
-    values.push(0); // space padding
+    values.push(0); // space padding (Code B value 0 = space)
   }
 
   const matrix: boolean[][] = [];
 
   for (let r = 0; r < rows; r++) {
+    // Build codeword sequence for this row
+    const rowCodes: number[] = [];
+
+    // Start symbol: Code 128 Start B (value 104)
+    rowCodes.push(104);
+
+    // First codeword: row indicator using CODE_B + row number mod
+    // For Code 16K, the first symbol after start encodes the row mode
+    rowCodes.push(CODE_B); // Switch to Code B
+    rowCodes.push(r); // Row number as first data codeword
+
+    // Data codewords for this row
+    for (let c = 0; c < cwPerRow; c++) {
+      rowCodes.push(values[r * cwPerRow + c]!);
+    }
+
+    // Calculate check digit (mod 103, same as Code 128)
+    let checksum = rowCodes[0]!;
+    for (let i = 1; i < rowCodes.length; i++) {
+      checksum += rowCodes[i]! * i;
+    }
+    rowCodes.push(checksum % 103);
+
+    // Convert codewords to module pattern
     const modules: boolean[] = [];
-
-    // Start pattern
     let isBar = true;
-    for (const w of CODE16K_START) {
-      for (let i = 0; i < w; i++) modules.push(isBar);
-      isBar = !isBar;
-    }
 
-    // Row indicator (row number as 2 codewords)
-    const rowCodes = [Math.floor(r / 10), r % 10];
-    for (const code of rowCodes) {
-      // Simple encoding: each digit as bar-space pattern
-      for (let bit = 3; bit >= 0; bit--) {
-        const isOn = ((code >> bit) & 1) === 1;
-        modules.push(isOn);
-        modules.push(!isOn);
+    // Encode all codewords using Code 128 patterns
+    for (const cw of rowCodes) {
+      const pattern = PATTERNS[cw]!;
+      for (const w of pattern) {
+        for (let i = 0; i < w; i++) {
+          modules.push(isBar);
+        }
+        isBar = !isBar;
       }
-    }
-
-    // Data codewords
-    for (let c = 0; c < cwPerRow; c++) {
-      const v = values[r * cwPerRow + c]!;
-      // Encode as 11-module pattern (simplified)
-      for (let bit = 6; bit >= 0; bit--) {
-        modules.push(((v >> bit) & 1) === 1);
-      }
-      // 4-module separator
-      modules.push(false, true, false, true);
-    }
-
-    // Check digit
-    let checksum = r;
-    for (let c = 0; c < cwPerRow; c++) {
-      checksum += values[r * cwPerRow + c]! * (c + 1);
-    }
-    const check = checksum % 107;
-    for (let bit = 6; bit >= 0; bit--) {
-      modules.push(((check >> bit) & 1) === 1);
     }
 
     // Stop pattern
-    isBar = true;
-    for (const w of CODE16K_STOP) {
-      for (let i = 0; i < w; i++) modules.push(isBar);
+    for (const w of STOP_PATTERN) {
+      for (let i = 0; i < w; i++) {
+        modules.push(isBar);
+      }
       isBar = !isBar;
     }
 
