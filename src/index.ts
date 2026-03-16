@@ -85,6 +85,8 @@ export { encodeCodablockF } from "./encoders/codablock-f";
 export { encodeCode16K } from "./encoders/code16k";
 export { encodeMaxiCode } from "./encoders/maxicode";
 export type { MaxiCodeOptions } from "./encoders/maxicode";
+export { encodeRMQR } from "./encoders/rmqr";
+export type { RMQROptions } from "./encoders/rmqr";
 export { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/index";
 export { encodePDF417 } from "./encoders/pdf417/index";
 export type { PDF417Options } from "./encoders/pdf417/index";
