@@ -191,8 +191,10 @@ export function renderQRCodeSVG(matrix: boolean[][], options: QRCodeSVGOptions =
     defs.push(
       `<clipPath id="etiket-circle-clip"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>`,
     );
-    // Extract all content after the <svg> tag (and optional background rect)
-    const bgIndex = xmlDeclaration ? 2 : 1;
+    // Extract all content after the <svg> tag, title, desc, and optional background rect
+    let bgIndex = xmlDeclaration ? 2 : 1;
+    if (title) bgIndex++;
+    if (desc) bgIndex++;
     const contentStart = background !== "transparent" ? bgIndex + 1 : bgIndex;
     const content = parts.splice(contentStart);
     parts.push(`<g clip-path="url(#etiket-circle-clip)">`);
@@ -200,9 +202,10 @@ export function renderQRCodeSVG(matrix: boolean[][], options: QRCodeSVGOptions =
     parts.push("</g>");
   }
 
-  // Insert defs if any
+  // Insert defs right after the <svg> tag (before title/desc/content)
   if (defs.length > 0) {
-    parts.splice(xmlDeclaration ? 2 : 1, 0, `<defs>${defs.join("")}</defs>`);
+    const defsIndex = xmlDeclaration ? 2 : 1;
+    parts.splice(defsIndex, 0, `<defs>${defs.join("")}</defs>`);
   }
 
   parts.push("</svg>");

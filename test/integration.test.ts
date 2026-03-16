@@ -480,4 +480,32 @@ describe("SVG accessibility", () => {
       expect(svg).toContain("<title>Aztec title</title>");
     });
   });
+
+  describe("QR circle shape with accessibility", () => {
+    it("circle shape works correctly with title and desc", () => {
+      const svg = qrcode("Hello", {
+        shape: "circle",
+        title: "QR circle",
+        desc: "Circle-shaped QR code",
+      });
+      expect(svg).toContain("<clipPath");
+      expect(svg).toContain("etiket-circle-clip");
+      expect(svg).toContain("<title>QR circle</title>");
+      expect(svg).toContain("<desc>Circle-shaped QR code</desc>");
+      expect(svg).toContain('role="img"');
+    });
+
+    it("circle shape with XML declaration and accessibility", () => {
+      const svg = qrcode("Hello", {
+        shape: "circle",
+        xmlDeclaration: true,
+        title: "QR code",
+        ariaLabel: "QR code for Hello",
+      });
+      expect(svg).toMatch(/^<\?xml/);
+      expect(svg).toContain("<clipPath");
+      expect(svg).toContain("<title>QR code</title>");
+      expect(svg).toContain('aria-label="QR code for Hello"');
+    });
+  });
 });
