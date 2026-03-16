@@ -1,0 +1,63 @@
+{
+  "name": "etiket",
+  "version": "0.0.1",
+  "description": "Zero-dependency barcode & QR code SVG generator. Pure ESM, lightweight, works everywhere.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "barcode",
+    "qrcode",
+    "svg",
+    "code128",
+    "ean13",
+    "ean8",
+    "qr",
+    "label",
+    "generator",
+    "zero-dependency",
+    "esm",
+    "typescript"
+  ],
+  "author": "productdevbook",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/productdevbook/etiket"
+  },
+  "homepage": "https://github.com/productdevbook/etiket",
+  "bugs": {
+    "url": "https://github.com/productdevbook/etiket/issues"
+  },
+  "devDependencies": {
+    "oxlint": "latest",
+    "tsdown": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
