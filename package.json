@@ -1,6 +1,6 @@
 {
   "name": "etiket",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Zero-dependency barcode & QR code SVG generator. 20+ formats, styled QR codes, tree-shakeable. Pure TypeScript, works everywhere.",
   "keywords": [
     "aztec",
@@ -91,12 +91,14 @@
     "@typescript/native-preview": "7.0.0-dev.20260316.1",
     "@vitest/coverage-v8": "^4.1.0",
     "bumpp": "^11.0.0",
+    "bwip-js": "^4.8.0",
     "citty": "^0.2.1",
     "consola": "^3.4.2",
     "jsqr": "^1.4.0",
     "obuild": "^0.4.32",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0",
+    "rmqr": "^0.3.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0",
     "zbar.wasm": "^2.1.1",
