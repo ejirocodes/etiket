@@ -216,7 +216,18 @@ export function encodeRMQR(text: string, options: RMQROptions = {}): boolean[][]
     Array.from<boolean | null>({ length: cols }).fill(null),
   );
 
-  // 1. Finder pattern (7×7 at top-left)
+  // Follow EXACT Zint rmqr_setup_grid order:
+  // 1. Timing patterns FIRST (all 4 edges)
+  for (let c = 0; c < cols; c++) {
+    matrix[0]![c] = !(c & 1);
+    matrix[rows - 1]![c] = !(c & 1);
+  }
+  for (let r = 0; r < rows; r++) {
+    matrix[r]![0] = !(r & 1);
+    matrix[r]![cols - 1] = !(r & 1);
+  }
+
+  // 2. Finder pattern (7×7 at top-left) - OVERRIDES timing
   for (let r = 0; r < 7; r++) {
     for (let c = 0; c < 7; c++) {
       const isOuter = r === 0 || r === 6 || c === 0 || c === 6;
@@ -224,39 +235,28 @@ export function encodeRMQR(text: string, options: RMQROptions = {}): boolean[][]
       matrix[r]![c] = isOuter || isInner;
     }
   }
-  // Separator around finder
-  if (rows > 7) for (let c = 0; c < 8 && c < cols; c++) matrix[7]![c] = false;
-  for (let r = 0; r < 7 && 7 < cols; r++) matrix[r]![7] = false;
 
-  // 2. Bottom-right alignment pattern (5×5)
+  // 3. Bottom-right alignment (5×5) - OVERRIDES timing
   const arx = cols - 5;
   const ary = rows - 5;
-  const AP = [0x1f, 0x11, 0x15, 0x11, 0x1f]; // 5x5 alignment
+  const AP = [0x1f, 0x11, 0x15, 0x11, 0x1f];
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       matrix[ary + r]![arx + c] = ((AP[r]! >> (4 - c)) & 1) === 1;
     }
   }
 
-  // 3. Corner finder patterns (from Zint rmqr_setup_grid)
-  // Bottom-left: (v_size-2,0)=dark, (v_size-2,1)=light, (v_size-1,1)=dark
+  // 4. Corner finder patterns
   matrix[rows - 2]![0] = true;
   matrix[rows - 2]![1] = false;
   matrix[rows - 1]![1] = true;
-  // Top-right: (0,h_size-2)=dark, (1,h_size-2)=light, (1,h_size-1)=dark
   matrix[0]![cols - 2] = true;
   matrix[1]![cols - 2] = false;
   matrix[1]![cols - 1] = true;
 
-  // 4. Timing patterns on all 4 edges
-  for (let c = 7; c < cols - 1; c++) {
-    if (matrix[0]![c] === null) matrix[0]![c] = c % 2 === 0;
-    if (matrix[rows - 1]![c] === null) matrix[rows - 1]![c] = (c + 1) % 2 === 0;
-  }
-  for (let r = 1; r < rows - 1; r++) {
-    if (matrix[r]![0] === null) matrix[r]![0] = (r + 1) % 2 === 0;
-    if (matrix[r]![cols - 1] === null) matrix[r]![cols - 1] = r % 2 === 0;
-  }
+  // 5. Separator
+  for (let r = 0; r < 7; r++) matrix[r]![7] = false;
+  if (rows > 7) for (let c = 0; c < 8; c++) matrix[7]![c] = false;
 
   // 4b. Sub-alignment vertical timing columns (rMQR-specific)
   // Column positions from rmqr_table_d1, indexed by width group
