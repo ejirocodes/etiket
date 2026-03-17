@@ -1,10 +1,6 @@
 <p align="center">
   <br>
-  <b style="font-size: 2em;">etiket</b>
-  <br><br>
-  Zero-dependency barcode & QR code SVG generator.
-  <br>
-  40+ formats, styled QR codes, tree-shakeable. Pure TypeScript, works everywhere.
+  <img src=".github/assets/cover.png" alt="etiket — Zero-dependency barcode & QR code SVG generator" width="100%">
   <br><br>
   <a href="https://npmjs.com/package/etiket"><img src="https://img.shields.io/npm/v/etiket?style=flat&colorA=18181B&colorB=F0DB4F" alt="npm version"></a>
   <a href="https://npmjs.com/package/etiket"><img src="https://img.shields.io/npm/dm/etiket?style=flat&colorA=18181B&colorB=F0DB4F" alt="npm downloads"></a>

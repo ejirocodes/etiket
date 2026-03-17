@@ -1,0 +1,392 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 628" width="1200" height="628">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="overlay" result="blend"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.06"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" mode="normal"/>
+    </filter>
+
+    <filter id="glow-orange" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feFlood flood-color="#f97316" flood-opacity="0.5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feFlood flood-color="#06b6d4" flood-opacity="0.45"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feFlood flood-color="#a78bfa" flood-opacity="0.4"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-emerald" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#34d399" flood-opacity="0.35"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-rose" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#fb7185" flood-opacity="0.35"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-amber" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feFlood flood-color="#fbbf24" flood-opacity="0.35"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <radialGradient id="ambientOrange" cx="0.05" cy="0.25" r="0.35">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambientCyan" cx="0.95" cy="0.15" r="0.35">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambientPurple" cx="0.05" cy="0.85" r="0.35">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambientEmerald" cx="0.95" cy="0.85" r="0.35">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Center dark backdrop gradient -->
+    <radialGradient id="centerBackdrop" cx="0.5" cy="0.5" r="0.55">
+      <stop offset="0%" stop-color="#06070b" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#06070b" stop-opacity="0.88"/>
+      <stop offset="80%" stop-color="#06070b" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#06070b" stop-opacity="0"/>
+    </radialGradient>
+
+    <pattern id="dotGrid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="14" r="0.6" fill="#334155" opacity="0.35"/>
+    </pattern>
+
+    <radialGradient id="vignetteGrad" cx="0.5" cy="0.5" r="0.7">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#06070b"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="628" fill="#06070b"/>
+  <rect width="1200" height="628" fill="url(#ambientOrange)"/>
+  <rect width="1200" height="628" fill="url(#ambientCyan)"/>
+  <rect width="1200" height="628" fill="url(#ambientPurple)"/>
+  <rect width="1200" height="628" fill="url(#ambientEmerald)"/>
+  <rect width="1200" height="628" fill="url(#dotGrid)" opacity="0.4"/>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CODE 128 — top left corner, pushed out  -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(-80, -30) rotate(-15, 120, 160)" filter="url(#glow-orange)" opacity="0.85">
+    <g fill="#f97316" transform="scale(1.8)">
+      <rect x="10" y="20" width="4" height="160"/>
+      <rect x="17" y="20" width="2" height="160"/>
+      <rect x="22" y="20" width="5" height="160"/>
+      <rect x="30" y="20" width="3" height="160"/>
+      <rect x="36" y="20" width="1" height="160"/>
+      <rect x="40" y="20" width="4" height="160"/>
+      <rect x="47" y="20" width="2" height="160"/>
+      <rect x="52" y="20" width="5" height="160"/>
+      <rect x="60" y="20" width="1" height="160"/>
+      <rect x="64" y="20" width="3" height="160"/>
+      <rect x="70" y="20" width="2" height="160"/>
+      <rect x="75" y="20" width="4" height="160"/>
+      <rect x="82" y="20" width="1" height="160"/>
+      <rect x="86" y="20" width="3" height="160"/>
+      <rect x="92" y="20" width="5" height="160"/>
+      <rect x="100" y="20" width="2" height="160"/>
+      <rect x="105" y="20" width="1" height="160"/>
+      <rect x="109" y="20" width="4" height="160"/>
+      <rect x="116" y="20" width="2" height="160"/>
+      <rect x="121" y="20" width="3" height="160"/>
+    </g>
+    <text x="130" y="360" text-anchor="middle" fill="#f97316" opacity="0.6" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="bold" letter-spacing="5">CODE 128</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- QR CODE — top right corner, pushed out  -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(940, -60) rotate(8, 150, 150)" filter="url(#glow-cyan)" opacity="0.75">
+    <g fill="#06b6d4" transform="scale(1.6)">
+      <!-- Top-left finder -->
+      <rect x="0" y="0" width="49" height="7"/>
+      <rect x="0" y="42" width="49" height="7"/>
+      <rect x="0" y="7" width="7" height="35"/>
+      <rect x="42" y="7" width="7" height="35"/>
+      <rect x="14" y="14" width="21" height="21"/>
+      <!-- Top-right finder -->
+      <rect x="112" y="0" width="49" height="7"/>
+      <rect x="112" y="42" width="49" height="7"/>
+      <rect x="112" y="7" width="7" height="35"/>
+      <rect x="154" y="7" width="7" height="35"/>
+      <rect x="126" y="14" width="21" height="21"/>
+      <!-- Bottom-left finder -->
+      <rect x="0" y="112" width="49" height="7"/>
+      <rect x="0" y="154" width="49" height="7"/>
+      <rect x="0" y="119" width="7" height="35"/>
+      <rect x="42" y="119" width="7" height="35"/>
+      <rect x="14" y="126" width="21" height="21"/>
+      <!-- Timing -->
+      <rect x="56" y="21" width="7" height="7"/>
+      <rect x="70" y="21" width="7" height="7"/>
+      <rect x="84" y="21" width="7" height="7"/>
+      <rect x="98" y="21" width="7" height="7"/>
+      <rect x="21" y="56" width="7" height="7"/>
+      <rect x="21" y="70" width="7" height="7"/>
+      <rect x="21" y="84" width="7" height="7"/>
+      <rect x="21" y="98" width="7" height="7"/>
+      <!-- Data -->
+      <rect x="56" y="56" width="7" height="7"/>
+      <rect x="70" y="63" width="7" height="7"/>
+      <rect x="84" y="56" width="7" height="7"/>
+      <rect x="63" y="77" width="7" height="7"/>
+      <rect x="91" y="70" width="7" height="7"/>
+      <rect x="105" y="56" width="7" height="7"/>
+      <rect x="56" y="91" width="7" height="7"/>
+      <rect x="77" y="84" width="7" height="7"/>
+      <rect x="98" y="91" width="7" height="7"/>
+      <rect x="63" y="105" width="7" height="7"/>
+      <rect x="84" y="98" width="7" height="7"/>
+      <rect x="112" y="63" width="7" height="7"/>
+      <rect x="126" y="56" width="7" height="7"/>
+      <rect x="140" y="70" width="7" height="7"/>
+      <rect x="119" y="84" width="7" height="7"/>
+      <rect x="133" y="91" width="7" height="7"/>
+      <rect x="154" y="77" width="7" height="7"/>
+      <rect x="112" y="105" width="7" height="7"/>
+      <rect x="133" y="112" width="7" height="7"/>
+      <rect x="56" y="126" width="7" height="7"/>
+      <rect x="77" y="119" width="7" height="7"/>
+      <rect x="98" y="133" width="7" height="7"/>
+      <rect x="112" y="119" width="7" height="7"/>
+      <rect x="140" y="126" width="7" height="7"/>
+      <rect x="126" y="140" width="7" height="7"/>
+      <rect x="154" y="147" width="7" height="7"/>
+      <rect x="112" y="147" width="7" height="7"/>
+      <rect x="70" y="140" width="7" height="7"/>
+      <rect x="84" y="147" width="7" height="7"/>
+    </g>
+    <text x="130" y="275" text-anchor="middle" fill="#06b6d4" opacity="0.55" font-family="'SF Mono','Fira Code',monospace" font-size="14" font-weight="bold" letter-spacing="5">QR CODE</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- DATA MATRIX — bottom left, pushed out   -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(-60, 380) rotate(6, 120, 100)" filter="url(#glow-purple)" opacity="0.7">
+    <g fill="#a78bfa" transform="scale(1.7)">
+      <!-- L-shape finder -->
+      <rect x="5" y="5" width="5" height="110"/>
+      <rect x="5" y="110" width="110" height="5"/>
+      <!-- Clock top -->
+      <rect x="5" y="5" width="5" height="5"/>
+      <rect x="15" y="5" width="5" height="5"/>
+      <rect x="25" y="5" width="5" height="5"/>
+      <rect x="35" y="5" width="5" height="5"/>
+      <rect x="45" y="5" width="5" height="5"/>
+      <rect x="55" y="5" width="5" height="5"/>
+      <rect x="65" y="5" width="5" height="5"/>
+      <rect x="75" y="5" width="5" height="5"/>
+      <rect x="85" y="5" width="5" height="5"/>
+      <rect x="95" y="5" width="5" height="5"/>
+      <rect x="105" y="5" width="5" height="5"/>
+      <!-- Clock right -->
+      <rect x="110" y="15" width="5" height="5"/>
+      <rect x="110" y="25" width="5" height="5"/>
+      <rect x="110" y="35" width="5" height="5"/>
+      <rect x="110" y="45" width="5" height="5"/>
+      <rect x="110" y="55" width="5" height="5"/>
+      <rect x="110" y="65" width="5" height="5"/>
+      <rect x="110" y="75" width="5" height="5"/>
+      <rect x="110" y="85" width="5" height="5"/>
+      <rect x="110" y="95" width="5" height="5"/>
+      <rect x="110" y="105" width="5" height="5"/>
+      <!-- Data -->
+      <rect x="15" y="15" width="5" height="5"/>
+      <rect x="30" y="15" width="5" height="5"/>
+      <rect x="50" y="20" width="5" height="5"/>
+      <rect x="70" y="15" width="5" height="5"/>
+      <rect x="90" y="20" width="5" height="5"/>
+      <rect x="20" y="30" width="5" height="5"/>
+      <rect x="40" y="35" width="5" height="5"/>
+      <rect x="60" y="30" width="5" height="5"/>
+      <rect x="80" y="35" width="5" height="5"/>
+      <rect x="100" y="30" width="5" height="5"/>
+      <rect x="15" y="45" width="5" height="5"/>
+      <rect x="35" y="50" width="5" height="5"/>
+      <rect x="55" y="45" width="5" height="5"/>
+      <rect x="75" y="50" width="5" height="5"/>
+      <rect x="95" y="45" width="5" height="5"/>
+      <rect x="25" y="60" width="5" height="5"/>
+      <rect x="45" y="65" width="5" height="5"/>
+      <rect x="65" y="60" width="5" height="5"/>
+      <rect x="85" y="65" width="5" height="5"/>
+      <rect x="15" y="75" width="5" height="5"/>
+      <rect x="40" y="80" width="5" height="5"/>
+      <rect x="60" y="75" width="5" height="5"/>
+      <rect x="80" y="80" width="5" height="5"/>
+      <rect x="100" y="75" width="5" height="5"/>
+      <rect x="25" y="90" width="5" height="5"/>
+      <rect x="50" y="95" width="5" height="5"/>
+      <rect x="70" y="90" width="5" height="5"/>
+      <rect x="90" y="95" width="5" height="5"/>
+      <rect x="15" y="100" width="5" height="5"/>
+      <rect x="35" y="105" width="5" height="5"/>
+      <rect x="55" y="100" width="5" height="5"/>
+      <rect x="75" y="105" width="5" height="5"/>
+      <rect x="100" y="100" width="5" height="5"/>
+    </g>
+    <text x="110" y="210" text-anchor="middle" fill="#a78bfa" opacity="0.5" font-family="'SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" letter-spacing="4">DATA MATRIX</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- EAN-13 — bottom right, pushed out       -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(910, 400) rotate(-8, 150, 100)" filter="url(#glow-emerald)" opacity="0.65">
+    <g fill="#34d399" transform="scale(2)">
+      <!-- Start guard -->
+      <rect x="0" y="0" width="2" height="100"/>
+      <rect x="4" y="0" width="2" height="100"/>
+      <!-- Left digits -->
+      <rect x="8" y="0" width="2" height="88"/>
+      <rect x="12" y="0" width="4" height="88"/>
+      <rect x="18" y="0" width="1" height="88"/>
+      <rect x="21" y="0" width="3" height="88"/>
+      <rect x="26" y="0" width="2" height="88"/>
+      <rect x="30" y="0" width="4" height="88"/>
+      <rect x="36" y="0" width="1" height="88"/>
+      <rect x="39" y="0" width="3" height="88"/>
+      <rect x="44" y="0" width="2" height="88"/>
+      <rect x="48" y="0" width="1" height="88"/>
+      <rect x="51" y="0" width="4" height="88"/>
+      <rect x="57" y="0" width="2" height="88"/>
+      <rect x="61" y="0" width="1" height="88"/>
+      <!-- Center guard -->
+      <rect x="65" y="0" width="1" height="100"/>
+      <rect x="68" y="0" width="1" height="100"/>
+      <!-- Right digits -->
+      <rect x="71" y="0" width="3" height="88"/>
+      <rect x="76" y="0" width="1" height="88"/>
+      <rect x="79" y="0" width="4" height="88"/>
+      <rect x="85" y="0" width="2" height="88"/>
+      <rect x="89" y="0" width="1" height="88"/>
+      <rect x="92" y="0" width="3" height="88"/>
+      <rect x="97" y="0" width="2" height="88"/>
+      <rect x="101" y="0" width="4" height="88"/>
+      <rect x="107" y="0" width="1" height="88"/>
+      <rect x="110" y="0" width="2" height="88"/>
+      <rect x="114" y="0" width="3" height="88"/>
+      <!-- End guard -->
+      <rect x="119" y="0" width="2" height="100"/>
+      <rect x="123" y="0" width="2" height="100"/>
+    </g>
+    <text x="130" y="216" text-anchor="middle" fill="#34d399" opacity="0.5" font-family="'SF Mono','Fira Code',monospace" font-size="13" font-weight="bold" letter-spacing="4">EAN-13</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- PDF417 — far right edge                 -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(1090, 180) rotate(18, 40, 60)" filter="url(#glow-rose)" opacity="0.5">
+    <g fill="#fb7185" transform="scale(1.6)">
+      <rect x="0" y="0" width="4" height="8"/><rect x="6" y="0" width="2" height="8"/><rect x="10" y="0" width="5" height="8"/><rect x="17" y="0" width="3" height="8"/><rect x="22" y="0" width="1" height="8"/><rect x="25" y="0" width="4" height="8"/><rect x="31" y="0" width="2" height="8"/><rect x="35" y="0" width="6" height="8"/><rect x="43" y="0" width="3" height="8"/><rect x="48" y="0" width="1" height="8"/><rect x="51" y="0" width="4" height="8"/>
+      <rect x="0" y="10" width="3" height="8"/><rect x="5" y="10" width="4" height="8"/><rect x="11" y="10" width="1" height="8"/><rect x="14" y="10" width="6" height="8"/><rect x="22" y="10" width="2" height="8"/><rect x="26" y="10" width="5" height="8"/><rect x="33" y="10" width="1" height="8"/><rect x="36" y="10" width="4" height="8"/><rect x="42" y="10" width="3" height="8"/><rect x="47" y="10" width="2" height="8"/><rect x="51" y="10" width="4" height="8"/>
+      <rect x="0" y="20" width="5" height="8"/><rect x="7" y="20" width="2" height="8"/><rect x="11" y="20" width="4" height="8"/><rect x="17" y="20" width="1" height="8"/><rect x="20" y="20" width="6" height="8"/><rect x="28" y="20" width="3" height="8"/><rect x="33" y="20" width="2" height="8"/><rect x="37" y="20" width="5" height="8"/><rect x="44" y="20" width="1" height="8"/><rect x="47" y="20" width="3" height="8"/><rect x="52" y="20" width="3" height="8"/>
+      <rect x="0" y="30" width="2" height="8"/><rect x="4" y="30" width="5" height="8"/><rect x="11" y="30" width="3" height="8"/><rect x="16" y="30" width="1" height="8"/><rect x="19" y="30" width="4" height="8"/><rect x="25" y="30" width="6" height="8"/><rect x="33" y="30" width="2" height="8"/><rect x="37" y="30" width="3" height="8"/><rect x="42" y="30" width="1" height="8"/><rect x="45" y="30" width="5" height="8"/><rect x="52" y="30" width="3" height="8"/>
+      <rect x="0" y="40" width="4" height="8"/><rect x="6" y="40" width="3" height="8"/><rect x="11" y="40" width="1" height="8"/><rect x="14" y="40" width="5" height="8"/><rect x="21" y="40" width="4" height="8"/><rect x="27" y="40" width="2" height="8"/><rect x="31" y="40" width="6" height="8"/><rect x="39" y="40" width="1" height="8"/><rect x="42" y="40" width="3" height="8"/><rect x="47" y="40" width="4" height="8"/><rect x="53" y="40" width="2" height="8"/>
+      <rect x="0" y="50" width="3" height="8"/><rect x="5" y="50" width="1" height="8"/><rect x="8" y="50" width="5" height="8"/><rect x="15" y="50" width="4" height="8"/><rect x="21" y="50" width="2" height="8"/><rect x="25" y="50" width="3" height="8"/><rect x="30" y="50" width="6" height="8"/><rect x="38" y="50" width="1" height="8"/><rect x="41" y="50" width="4" height="8"/><rect x="47" y="50" width="3" height="8"/><rect x="52" y="50" width="3" height="8"/>
+      <rect x="0" y="60" width="5" height="8"/><rect x="7" y="60" width="3" height="8"/><rect x="12" y="60" width="2" height="8"/><rect x="16" y="60" width="4" height="8"/><rect x="22" y="60" width="1" height="8"/><rect x="25" y="60" width="5" height="8"/><rect x="32" y="60" width="3" height="8"/><rect x="37" y="60" width="2" height="8"/><rect x="41" y="60" width="6" height="8"/><rect x="49" y="60" width="1" height="8"/><rect x="52" y="60" width="3" height="8"/>
+    </g>
+    <text x="48" y="124" text-anchor="middle" fill="#fb7185" opacity="0.4" font-family="'SF Mono','Fira Code',monospace" font-size="11" font-weight="bold" letter-spacing="3">PDF417</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- AZTEC — far left edge mid               -->
+  <!-- ════════════════════════════════════════ -->
+  <g transform="translate(24, 260)" filter="url(#glow-amber)" opacity="0.4">
+    <g fill="none" stroke="#fbbf24" stroke-width="5">
+      <rect x="0" y="0" width="80" height="80"/>
+      <rect x="14" y="14" width="52" height="52"/>
+      <rect x="28" y="28" width="24" height="24"/>
+    </g>
+    <rect x="34" y="34" width="12" height="12" fill="#fbbf24"/>
+    <text x="40" y="102" text-anchor="middle" fill="#fbbf24" opacity="0.45" font-family="'SF Mono','Fira Code',monospace" font-size="12" font-weight="bold" letter-spacing="4">AZTEC</text>
+  </g>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CENTER DARK BACKDROP — keeps text clear -->
+  <!-- ════════════════════════════════════════ -->
+  <rect width="1200" height="628" fill="url(#centerBackdrop)"/>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CENTER CONTENT                           -->
+  <!-- ════════════════════════════════════════ -->
+
+  <!-- "etiket" wordmark -->
+  <text x="600" y="260" text-anchor="middle" fill="#f8fafc" font-family="'Georgia','Playfair Display','Times New Roman',serif" font-size="148" font-weight="bold" letter-spacing="-3" opacity="0.97">etiket</text>
+
+  <!-- Thin rule -->
+  <line x1="340" y1="286" x2="860" y2="286" stroke="#475569" stroke-width="1" opacity="0.5"/>
+
+  <!-- Tagline -->
+  <text x="600" y="326" text-anchor="middle" fill="#cbd5e1" font-family="'SF Mono','Fira Code','Menlo',monospace" font-size="19" letter-spacing="6">BARCODE &amp; QR CODE SVG GENERATOR</text>
+
+  <!-- Feature pills -->
+  <g font-family="'SF Mono','Fira Code','Menlo',monospace" font-size="14" letter-spacing="1.5">
+    <g transform="translate(254, 356)">
+      <rect x="0" y="0" width="164" height="38" rx="19" fill="#f9731610" stroke="#f97316" stroke-width="1.3" opacity="0.7"/>
+      <text x="82" y="25" text-anchor="middle" fill="#f97316" opacity="0.95">0 DEPENDENCIES</text>
+    </g>
+    <g transform="translate(434, 356)">
+      <rect x="0" y="0" width="140" height="38" rx="19" fill="#06b6d410" stroke="#06b6d4" stroke-width="1.3" opacity="0.7"/>
+      <text x="70" y="25" text-anchor="middle" fill="#06b6d4" opacity="0.95">40+ FORMATS</text>
+    </g>
+    <g transform="translate(590, 356)">
+      <rect x="0" y="0" width="140" height="38" rx="19" fill="#a78bfa10" stroke="#a78bfa" stroke-width="1.3" opacity="0.7"/>
+      <text x="70" y="25" text-anchor="middle" fill="#a78bfa" opacity="0.95">TYPESCRIPT</text>
+    </g>
+    <g transform="translate(746, 356)">
+      <rect x="0" y="0" width="172" height="38" rx="19" fill="#34d39910" stroke="#34d399" stroke-width="1.3" opacity="0.7"/>
+      <text x="86" y="25" text-anchor="middle" fill="#34d399" opacity="0.95">TREE-SHAKEABLE</text>
+    </g>
+  </g>
+
+  <!-- Format list -->
+  <text x="600" y="432" text-anchor="middle" fill="#94a3b8" font-family="'SF Mono','Fira Code',monospace" font-size="13" letter-spacing="2.5">QR · DATA MATRIX · PDF417 · AZTEC · CODE 128 · EAN · UPC · ITF · GS1 · CODE 39</text>
+
+  <!-- npm install badge -->
+  <g transform="translate(496, 460)">
+    <rect x="0" y="0" width="208" height="40" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="20" y="26" fill="#64748b" font-family="'SF Mono','Fira Code',monospace" font-size="16">$</text>
+    <text x="38" y="26" fill="#94a3b8" font-family="'SF Mono','Fira Code',monospace" font-size="16"> npm i </text>
+    <text x="118" y="26" fill="#f8fafc" font-family="'SF Mono','Fira Code',monospace" font-size="16" font-weight="bold">etiket</text>
+  </g>
+
+  <!-- GitHub link -->
+  <text x="600" y="556" text-anchor="middle" fill="#64748b" font-family="'SF Mono','Fira Code',monospace" font-size="13" letter-spacing="1.5">github.com/productdevbook/etiket</text>
+
+  <!-- Grain overlay -->
+  <rect width="1200" height="628" filter="url(#grain)" opacity="0.2"/>
+
+  <!-- Vignette -->
+  <rect width="1200" height="628" fill="url(#vignetteGrad)" opacity="0.45"/>
+</svg>
