@@ -316,10 +316,20 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
   );
 
   // Place 4 finder patterns (all corners — Han Xin has 4, not 3 like QR)
-  placeFinder(matrix, 0, 0, size);
-  placeFinder(matrix, 0, size - 7, size);
-  placeFinder(matrix, size - 7, 0, size);
-  placeFinder(matrix, size - 7, size - 7, size);
+  // Han Xin 4 rotationally-distinct chevron-shaped finder patterns (from Zint/bwip-js)
+  // prettier-ignore
+  const FINDER_TL = [0x7f,0x40,0x5f,0x50,0x57,0x57,0x57];
+  // prettier-ignore
+  const FINDER_TR = [0x7f,0x01,0x7d,0x05,0x75,0x75,0x75];
+  // prettier-ignore
+  const FINDER_BL = [0x7f,0x01,0x7d,0x05,0x75,0x75,0x75]; // same as TR per spec
+  // prettier-ignore
+  const FINDER_BR = [0x75,0x75,0x75,0x05,0x7d,0x01,0x7f]; // TR reversed
+
+  placeFinderHX(matrix, 0, 0, FINDER_TL, size);
+  placeFinderHX(matrix, 0, size - 7, FINDER_TR, size);
+  placeFinderHX(matrix, size - 7, 0, FINDER_BL, size);
+  placeFinderHX(matrix, size - 7, size - 7, FINDER_BR, size);
 
   // Timing patterns along all 4 edges
   for (let i = 7; i < size - 7; i++) {
@@ -350,15 +360,19 @@ export function encodeHanXin(text: string, options: HanXinOptions = {}): boolean
   return matrix.map((row) => row.map((cell) => cell === true));
 }
 
-function placeFinder(matrix: (boolean | null)[][], row: number, col: number, size: number): void {
+function placeFinderHX(
+  matrix: (boolean | null)[][],
+  row: number,
+  col: number,
+  pattern: number[],
+  size: number,
+): void {
   for (let r = 0; r < 7; r++) {
     for (let c = 0; c < 7; c++) {
       const rr = row + r;
       const cc = col + c;
       if (rr < 0 || rr >= size || cc < 0 || cc >= size) continue;
-      const isOuter = r === 0 || r === 6 || c === 0 || c === 6;
-      const isInner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-      matrix[rr]![cc] = isOuter || isInner;
+      matrix[rr]![cc] = ((pattern[r]! >> (6 - c)) & 1) === 1;
     }
   }
 }

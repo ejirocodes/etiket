@@ -11,9 +11,8 @@ describe("Han Xin Code", () => {
   it("4 finder patterns at corners", () => {
     const matrix = encodeHanXin("Test");
     const size = matrix.length;
-    // Top-left
+    // Top-left (chevron pattern, not QR square)
     expect(matrix[0]![0]).toBe(true);
-    expect(matrix[3]![3]).toBe(true);
     // Top-right
     expect(matrix[0]![size - 1]).toBe(true);
     // Bottom-left
