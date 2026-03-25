@@ -74,6 +74,10 @@
     "./aztec": {
       "types": "./dist/aztec.d.mts",
       "default": "./dist/aztec.mjs"
+    },
+    "./png": {
+      "types": "./dist/png.d.mts",
+      "default": "./dist/png.mjs"
     }
   },
   "scripts": {

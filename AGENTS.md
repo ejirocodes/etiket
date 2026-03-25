@@ -15,6 +15,7 @@ src/
   datamatrix.ts             # Sub-path: etiket/datamatrix
   pdf417.ts                 # Sub-path: etiket/pdf417
   aztec.ts                  # Sub-path: etiket/aztec
+  png.ts                    # Sub-path: etiket/png
   cli.ts                    # CLI entry (citty + consola)
   errors.ts                 # Custom error classes
   env.d.ts                  # Runtime type declarations
@@ -78,6 +79,13 @@ src/
       optimize.ts           # SVG optimization
       types.ts              # All rendering types
       utils.ts              # escapeAttr utility
+    png/
+      types.ts              # BarcodePNGOptions, MatrixPNGOptions
+      crc32.ts              # CRC32 for PNG chunk checksums
+      adler32.ts            # Adler32 for zlib wrapper
+      deflate.ts            # Stored DEFLATE + zlib compression
+      png-encoder.ts        # PNG chunk assembly (palette-based)
+      rasterize.ts          # bars/matrix → pixel rows → PNG
     text.ts                 # Terminal output (Unicode blocks)
     data-uri.ts             # SVG → Data URI / Base64
   validators/
@@ -85,7 +93,7 @@ src/
     barcode.ts              # Per-format validation
     qr.ts                   # QR validation with metadata
 test/
-  *.test.ts                 # 63 test files, 834+ tests
+  *.test.ts                 # 67 test files, 905+ tests
   qr-roundtrip.test.ts      # QR encode→decode via jsQR (all versions, EC, masks)
   barcode-roundtrip.test.ts # 1D barcode structural validation
 docs/
@@ -94,9 +102,11 @@ docs/
 
 ## Public API
 
-Single entry: `etiket` (everything). Sub-paths: `etiket/barcode`, `etiket/qr`, `etiket/datamatrix`, `etiket/pdf417`, `etiket/aztec`.
+Single entry: `etiket` (everything). Sub-paths: `etiket/barcode`, `etiket/qr`, `etiket/datamatrix`, `etiket/pdf417`, `etiket/aztec`, `etiket/png`.
 
 Key functions: `barcode()`, `qrcode()`, `datamatrix()`, `pdf417()`, `aztec()`, `gs1datamatrix()`, `swissQR()`, `gs1DigitalLink()`, `wifi()`, `vcard()`, `mecard()`, `event()`, `phone()`, `email()`, `sms()`, `geo()`, `encode()`, `optimizeSVG()`.
+
+PNG functions: `barcodePNG()`, `qrcodePNG()`, `datamatrixPNG()`, `pdf417PNG()`, `aztecPNG()`, `gs1datamatrixPNG()` + `*PNGDataURI()` variants. Low-level: `renderBarcodePNG()`, `renderMatrixPNG()`.
 
 ## Build & Scripts
 

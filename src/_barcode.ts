@@ -27,9 +27,9 @@ import { svgToDataURI, svgToBase64 } from "./renderers/data-uri";
 import type { BarcodeOptions } from "./_types";
 
 /**
- * Generate a barcode as SVG string
+ * Encode barcode text to bar width pattern
  */
-export function barcode(text: string, options: BarcodeOptions = {}): string {
+export function encodeBars(text: string, options: BarcodeOptions = {}): number[] {
   const {
     type = "code128",
     msiCheckDigit,
@@ -37,107 +37,96 @@ export function barcode(text: string, options: BarcodeOptions = {}): string {
     codabarStart,
     codabarStop,
     code128Charset,
-    ...svgOptions
   } = options;
-
-  let bars: number[];
 
   switch (type) {
     case "code128":
-      bars = encodeCode128(text, code128Charset ? { charset: code128Charset } : undefined);
-      break;
+      return encodeCode128(text, code128Charset ? { charset: code128Charset } : undefined);
     case "ean13":
-      bars = encodeEAN13(text).bars;
-      break;
+      return encodeEAN13(text).bars;
     case "ean8":
-      bars = encodeEAN8(text).bars;
-      break;
+      return encodeEAN8(text).bars;
     case "code39":
-      bars = encodeCode39(text, { checkDigit: code39CheckDigit });
-      break;
+      return encodeCode39(text, { checkDigit: code39CheckDigit });
     case "code39ext":
-      bars = encodeCode39Extended(text, { checkDigit: code39CheckDigit });
-      break;
+      return encodeCode39Extended(text, { checkDigit: code39CheckDigit });
     case "code93":
-      bars = encodeCode93(text);
-      break;
+      return encodeCode93(text);
     case "code93ext":
-      bars = encodeCode93Extended(text);
-      break;
+      return encodeCode93Extended(text);
     case "itf":
-      bars = encodeITF(text);
-      break;
+      return encodeITF(text);
     case "itf14":
-      bars = encodeITF14(text);
-      break;
+      return encodeITF14(text);
     case "upca":
-      bars = encodeUPCA(text).bars;
-      break;
+      return encodeUPCA(text).bars;
     case "upce":
-      bars = encodeUPCE(text).bars;
-      break;
+      return encodeUPCE(text).bars;
     case "ean2":
-      bars = encodeEAN2(text);
-      break;
+      return encodeEAN2(text);
     case "ean5":
-      bars = encodeEAN5(text);
-      break;
+      return encodeEAN5(text);
     case "codabar":
-      bars = encodeCodabar(text, { start: codabarStart, stop: codabarStop });
-      break;
+      return encodeCodabar(text, { start: codabarStart, stop: codabarStop });
     case "msi":
-      bars = encodeMSI(text, { checkDigit: msiCheckDigit });
-      break;
+      return encodeMSI(text, { checkDigit: msiCheckDigit });
     case "pharmacode":
-      bars = encodePharmacode(Number(text));
-      break;
+      return encodePharmacode(Number(text));
     case "code11":
-      bars = encodeCode11(text);
-      break;
+      return encodeCode11(text);
     case "gs1-128":
-      bars = encodeGS1128(text);
-      break;
+      return encodeGS1128(text);
     case "identcode":
-      bars = encodeIdentcode(text);
-      break;
+      return encodeIdentcode(text);
     case "leitcode":
-      bars = encodeLeitcode(text);
-      break;
+      return encodeLeitcode(text);
     case "postnet": {
       const heights = encodePOSTNET(text);
-      bars = [];
+      const bars: number[] = [];
       for (const _h of heights) {
         bars.push(1);
         bars.push(1);
       }
       bars.pop();
-      break;
+      return bars;
     }
     case "planet": {
       const heights = encodePLANET(text);
-      bars = [];
+      const bars: number[] = [];
       for (const _h of heights) {
         bars.push(1);
         bars.push(1);
       }
       bars.pop();
-      break;
+      return bars;
     }
     case "plessey":
-      bars = encodePlessey(text);
-      break;
+      return encodePlessey(text);
     case "gs1-databar":
-      bars = encodeGS1DataBarOmni(text);
-      break;
+      return encodeGS1DataBarOmni(text);
     case "gs1-databar-limited":
-      bars = encodeGS1DataBarLimited(text);
-      break;
+      return encodeGS1DataBarLimited(text);
     case "gs1-databar-expanded":
-      bars = encodeGS1DataBarExpanded(text);
-      break;
+      return encodeGS1DataBarExpanded(text);
     default:
       throw new Error(`Unsupported barcode type: ${type}`);
   }
+}
+
+/**
+ * Generate a barcode as SVG string
+ */
+export function barcode(text: string, options: BarcodeOptions = {}): string {
+  const {
+    type: _type,
+    msiCheckDigit: _msi,
+    code39CheckDigit: _c39,
+    codabarStart: _cbStart,
+    codabarStop: _cbStop,
+    code128Charset: _c128,
+    ...svgOptions
+  } = options;
+  const bars = encodeBars(text, options);
 
   return renderBarcodeSVG(bars, {
     ...svgOptions,

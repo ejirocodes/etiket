@@ -11,6 +11,7 @@ export default defineBuildConfig({
         "./src/datamatrix.ts",
         "./src/pdf417.ts",
         "./src/aztec.ts",
+        "./src/png.ts",
         "./src/cli.ts",
       ],
       minify: true,

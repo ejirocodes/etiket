@@ -11,7 +11,7 @@
  */
 
 // --- High-level API ---
-export { barcode, barcodeDataURI, barcodeBase64 } from "./_barcode";
+export { barcode, barcodeDataURI, barcodeBase64, encodeBars } from "./_barcode";
 export { qrcode, qrcodeTerminal, qrcodeDataURI, qrcodeBase64 } from "./_qrcode";
 export { datamatrix, gs1datamatrix, pdf417, aztec } from "./_2d";
 export { encode } from "./_encode";
@@ -115,6 +115,24 @@ export {
   encodeISBT128BloodGroup,
   iso7064Mod37_2,
 } from "./encoders/isbt128";
+
+// --- PNG ---
+export {
+  barcodePNG,
+  barcodePNGDataURI,
+  qrcodePNG,
+  qrcodePNGDataURI,
+  datamatrixPNG,
+  datamatrixPNGDataURI,
+  gs1datamatrixPNG,
+  gs1datamatrixPNGDataURI,
+  pdf417PNG,
+  pdf417PNGDataURI,
+  aztecPNG,
+  aztecPNGDataURI,
+} from "./_png";
+export type { BarcodePNGOptions, MatrixPNGOptions } from "./renderers/png/types";
+export { renderBarcodePNG, renderMatrixPNG } from "./renderers/png/rasterize";
 
 // --- Renderers ---
 export { renderBarcodeSVG } from "./renderers/svg/barcode";
