@@ -348,7 +348,7 @@
   <line x1="340" y1="286" x2="860" y2="286" stroke="#475569" stroke-width="1" opacity="0.5"/>
 
   <!-- Tagline -->
-  <text x="600" y="326" text-anchor="middle" fill="#cbd5e1" font-family="'SF Mono','Fira Code','Menlo',monospace" font-size="19" letter-spacing="6">BARCODE &amp; QR CODE SVG GENERATOR</text>
+  <text x="600" y="326" text-anchor="middle" fill="#cbd5e1" font-family="'SF Mono','Fira Code','Menlo',monospace" font-size="19" letter-spacing="6">BARCODE &amp; QR CODE GENERATOR — SVG &amp; PNG</text>
 
   <!-- Feature pills -->
   <g font-family="'SF Mono','Fira Code','Menlo',monospace" font-size="14" letter-spacing="1.5">
