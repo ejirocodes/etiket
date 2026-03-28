@@ -163,10 +163,16 @@
           </div>
 
           <div class="preview">
+            <div class="preview-toggle">
+              <button class="toggle-btn active" data-preview="svg" data-target="bc">SVG</button>
+              <button class="toggle-btn" data-preview="png" data-target="bc">PNG</button>
+            </div>
             <div class="output" id="bc-output"></div>
+            <div class="output" id="bc-output-png" hidden></div>
             <div class="actions">
               <button class="btn" id="bc-copy">Copy SVG</button>
               <button class="btn" id="bc-download">Download SVG</button>
+              <button class="btn" id="bc-download-png">Download PNG</button>
             </div>
           </div>
         </div>
@@ -398,10 +404,16 @@
           </div>
 
           <div class="preview">
+            <div class="preview-toggle">
+              <button class="toggle-btn active" data-preview="svg" data-target="qr">SVG</button>
+              <button class="toggle-btn" data-preview="png" data-target="qr">PNG</button>
+            </div>
             <div class="output" id="qr-output"></div>
+            <div class="output" id="qr-output-png" hidden></div>
             <div class="actions">
               <button class="btn" id="qr-copy">Copy SVG</button>
               <button class="btn" id="qr-download">Download SVG</button>
+              <button class="btn" id="qr-download-png">Download PNG</button>
             </div>
           </div>
         </div>
@@ -633,10 +645,16 @@
           </div>
 
           <div class="preview">
+            <div class="preview-toggle">
+              <button class="toggle-btn active" data-preview="svg" data-target="m2d">SVG</button>
+              <button class="toggle-btn" data-preview="png" data-target="m2d">PNG</button>
+            </div>
             <div class="output" id="m2d-output"></div>
+            <div class="output" id="m2d-output-png" hidden></div>
             <div class="actions">
               <button class="btn" id="m2d-copy">Copy SVG</button>
               <button class="btn" id="m2d-download">Download SVG</button>
+              <button class="btn" id="m2d-download-png">Download PNG</button>
             </div>
           </div>
         </div>
@@ -667,7 +685,8 @@
             <div class="helper-output" id="h-wifi-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-wifi">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-wifi">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-wifi">SVG</button
+              ><button class="btn-sm" data-helper-png="h-wifi">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -680,7 +699,8 @@
             <div class="helper-output" id="h-url-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-url">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-url">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-url">SVG</button
+              ><button class="btn-sm" data-helper-png="h-url">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -693,7 +713,8 @@
             <div class="helper-output" id="h-email-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-email">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-email">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-email">SVG</button
+              ><button class="btn-sm" data-helper-png="h-email">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -707,7 +728,8 @@
             <div class="helper-output" id="h-sms-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-sms">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-sms">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-sms">SVG</button
+              ><button class="btn-sm" data-helper-png="h-sms">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -720,7 +742,8 @@
             <div class="helper-output" id="h-phone-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-phone">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-phone">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-phone">SVG</button
+              ><button class="btn-sm" data-helper-png="h-phone">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -738,7 +761,8 @@
             <div class="helper-output" id="h-geo-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-geo">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-geo">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-geo">SVG</button
+              ><button class="btn-sm" data-helper-png="h-geo">PNG</button>
             </div>
           </div>
           <div class="helper-card wide">
@@ -773,7 +797,8 @@
             <div class="helper-output" id="h-vcard-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-vcard">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-vcard">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-vcard">SVG</button
+              ><button class="btn-sm" data-helper-png="h-vcard">PNG</button>
             </div>
           </div>
           <div class="helper-card">
@@ -790,7 +815,8 @@
             <div class="helper-output" id="h-mecard-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-mecard">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-mecard">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-mecard">SVG</button
+              ><button class="btn-sm" data-helper-png="h-mecard">PNG</button>
             </div>
           </div>
           <div class="helper-card wide">
@@ -816,7 +842,8 @@
             <div class="helper-output" id="h-event-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-event">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-event">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-event">SVG</button
+              ><button class="btn-sm" data-helper-png="h-event">PNG</button>
             </div>
           </div>
           <div class="helper-card wide">
@@ -856,7 +883,8 @@
             <div class="helper-output" id="h-swiss-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-swiss">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-swiss">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-swiss">SVG</button
+              ><button class="btn-sm" data-helper-png="h-swiss">PNG</button>
             </div>
           </div>
           <div class="helper-card wide">
@@ -877,7 +905,8 @@
             <div class="helper-output" id="h-gs1-out"></div>
             <div class="helper-actions">
               <button class="btn-sm" data-helper-copy="h-gs1">Copy</button
-              ><button class="btn-sm" data-helper-dl="h-gs1">Download</button>
+              ><button class="btn-sm" data-helper-dl="h-gs1">SVG</button
+              ><button class="btn-sm" data-helper-png="h-gs1">PNG</button>
             </div>
           </div>
         </div>

@@ -45,6 +45,14 @@ import {
   encodeISBT128BloodGroup,
   // Renderer
   renderMatrixSVG,
+  // PNG
+  barcodePNG,
+  qrcodePNG,
+  datamatrixPNG,
+  gs1datamatrixPNG,
+  pdf417PNG,
+  aztecPNG,
+  renderMatrixPNG,
 } from "etiket";
 
 import type { GradientOptions, LogoOptions } from "etiket";
@@ -159,8 +167,94 @@ function downloadSVG(svg: string, name: string) {
   toast("Downloaded");
 }
 
+function downloadPNG(data: Uint8Array, name: string) {
+  const blob = new Blob([data], { type: "image/png" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}.png`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Downloaded PNG");
+}
+
+function svgToPNG(svgString: string): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth * 2;
+      canvas.height = img.naturalHeight * 2;
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(2, 2);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error("Failed to create PNG"));
+        blob.arrayBuffer().then((buf) => resolve(new Uint8Array(buf)));
+      }, "image/png");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load SVG"));
+    };
+    img.src = url;
+  });
+}
+
 function listen(ids: string[], fn: () => void) {
   for (const id of ids) $(id).addEventListener("input", fn);
+}
+
+// Track active preview mode per panel
+const previewMode: Record<string, "svg" | "png"> = {
+  bc: "svg",
+  qr: "svg",
+  m2d: "svg",
+};
+
+function setupPreviewToggles() {
+  document.querySelectorAll<HTMLButtonElement>(".toggle-btn[data-preview]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.target!;
+      const mode = btn.dataset.preview as "svg" | "png";
+      previewMode[target] = mode;
+
+      // Toggle active class
+      btn.parentElement!.querySelectorAll(".toggle-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Toggle output visibility
+      const svgOut = $(`${target}-output`);
+      const pngOut = $(`${target}-output-png`);
+      svgOut.hidden = mode === "png";
+      pngOut.hidden = mode === "svg";
+
+      // Trigger re-render for PNG if switching
+      if (mode === "png") {
+        pngOut.dispatchEvent(new CustomEvent("render-png"));
+      }
+    });
+  });
+}
+
+function renderPNGPreview(target: string, pngData: Uint8Array) {
+  const el = $(`${target}-output-png`);
+  const blob = new Blob([pngData], { type: "image/png" });
+  const url = URL.createObjectURL(blob);
+  el.innerHTML = `<img src="${url}" alt="PNG preview" style="max-width:100%;image-rendering:pixelated" />`;
+}
+
+function renderPNGPreviewFromSVG(target: string, svg: string) {
+  svgToPNG(svg).then((png) => {
+    const el = $(`${target}-output-png`);
+    const blob = new Blob([png], { type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    el.innerHTML = `<img src="${url}" alt="PNG preview" style="max-width:100%" />`;
+  }).catch(() => {
+    $(`${target}-output-png`).innerHTML = `<div class="error">PNG render failed</div>`;
+  });
 }
 
 function setupCopyDownload(prefix: string, getFn: () => string) {
@@ -346,11 +440,38 @@ function getBarcodeOpts() {
   };
 }
 
+function renderBarcodePNGPreview() {
+  try {
+    const type = val("bc-type");
+    const data = val("bc-data");
+    const opts = getBarcodeOpts();
+    if (!FOURSTATE_TYPES.has(type) && !HEALTHCARE_TYPES.has(type)) {
+      const png = barcodePNG(data, {
+        type: type as any,
+        scale: opts.barWidth,
+        height: opts.height,
+        margin: opts.margin,
+        color: opts.color,
+        background: opts.background,
+      });
+      renderPNGPreview("bc", png);
+    } else {
+      renderPNGPreviewFromSVG("bc", generateBarcode(data, type, opts));
+    }
+  } catch (err) {
+    $("bc-output-png").innerHTML = `<div class="error">${(err as Error).message}</div>`;
+  }
+}
+
 function setupBarcode() {
-  const render = () =>
+  const render = () => {
     renderSafe($("bc-output"), () =>
       generateBarcode(val("bc-data"), val("bc-type"), getBarcodeOpts()),
     );
+    if (previewMode.bc === "png") renderBarcodePNGPreview();
+  };
+
+  $("bc-output-png").addEventListener("render-png", renderBarcodePNGPreview);
 
   $("bc-type").addEventListener("change", () => {
     const type = val("bc-type");
@@ -376,6 +497,31 @@ function setupBarcode() {
     render,
   );
   setupCopyDownload("bc", () => generateBarcode(val("bc-data"), val("bc-type"), getBarcodeOpts()));
+
+  $("bc-download-png").addEventListener("click", () => {
+    try {
+      const type = val("bc-type");
+      const data = val("bc-data");
+      const opts = getBarcodeOpts();
+      // Standard barcode types that support direct PNG
+      if (!FOURSTATE_TYPES.has(type) && !HEALTHCARE_TYPES.has(type)) {
+        const png = barcodePNG(data, {
+          type: type as any,
+          scale: opts.barWidth,
+          height: opts.height,
+          margin: opts.margin,
+          color: opts.color,
+          background: opts.background,
+        });
+        downloadPNG(png, `barcode-${type}`);
+      } else {
+        // Fallback: render SVG to canvas for non-standard types
+        const svg = generateBarcode(data, type, opts);
+        svgToPNG(svg).then((png) => downloadPNG(png, `barcode-${type}`));
+      }
+    } catch {}
+  });
+
   render();
 }
 
@@ -483,8 +629,37 @@ function generateQR(): string {
   });
 }
 
+function renderQRPNGPreview() {
+  try {
+    const data = val("qr-data");
+    const isMicro = val("qr-micro") === "micro";
+    if (isMicro) {
+      renderPNGPreviewFromSVG("qr", generateQR());
+    } else {
+      const png = qrcodePNG(data, {
+        ecLevel: val("qr-ec") as any,
+        moduleSize: Math.max(2, Math.round(numVal("qr-size") / 30)),
+        margin: numVal("qr-margin"),
+        color: typeof getQRColor() === "string" ? (getQRColor() as string) : "#000000",
+        background:
+          typeof getQRBg() === "string" && getQRBg() !== "transparent"
+            ? (getQRBg() as string)
+            : "#ffffff",
+      });
+      renderPNGPreview("qr", png);
+    }
+  } catch (err) {
+    $("qr-output-png").innerHTML = `<div class="error">${(err as Error).message}</div>`;
+  }
+}
+
 function setupQR() {
-  const render = () => renderSafe($("qr-output"), generateQR);
+  const render = () => {
+    renderSafe($("qr-output"), generateQR);
+    if (previewMode.qr === "png") renderQRPNGPreview();
+  };
+
+  $("qr-output-png").addEventListener("render-png", renderQRPNGPreview);
 
   // Color mode toggles
   for (const [selectId, group] of [
@@ -550,6 +725,30 @@ function setupQR() {
   );
 
   setupCopyDownload("qr", generateQR);
+
+  $("qr-download-png").addEventListener("click", () => {
+    try {
+      const data = val("qr-data");
+      const isMicro = val("qr-micro") === "micro";
+      if (isMicro) {
+        // Micro QR — fallback via SVG canvas
+        svgToPNG(generateQR()).then((png) => downloadPNG(png, "qr-micro"));
+      } else {
+        const png = qrcodePNG(data, {
+          ecLevel: val("qr-ec") as any,
+          moduleSize: Math.max(2, Math.round(numVal("qr-size") / 30)),
+          margin: numVal("qr-margin"),
+          color: typeof getQRColor() === "string" ? (getQRColor() as string) : "#000000",
+          background:
+            typeof getQRBg() === "string" && getQRBg() !== "transparent"
+              ? (getQRBg() as string)
+              : "#ffffff",
+        });
+        downloadPNG(png, "qrcode");
+      }
+    } catch {}
+  });
+
   render();
 }
 
@@ -638,8 +837,58 @@ function generate2D(): string {
   }
 }
 
+function render2DPNGPreview() {
+  try {
+    const format = val("m2d-format");
+    const data = val("m2d-data");
+    const pngOpts = {
+      moduleSize: Math.max(2, Math.round(numVal("m2d-size") / 30)),
+      margin: numVal("m2d-margin"),
+      color: val("m2d-color"),
+      background: val("m2d-bg"),
+    };
+
+    let png: Uint8Array | null = null;
+    switch (format) {
+      case "datamatrix":
+        png = datamatrixPNG(data, pngOpts);
+        break;
+      case "gs1datamatrix":
+        png = gs1datamatrixPNG(data, pngOpts);
+        break;
+      case "pdf417":
+        png = pdf417PNG(data, {
+          ...pngOpts,
+          ecLevel: numVal("m2d-pdf-ec"),
+          columns: optNum("m2d-pdf-cols"),
+          compact: val("m2d-pdf-compact") === "true",
+        });
+        break;
+      case "aztec":
+        png = aztecPNG(data, {
+          ...pngOpts,
+          ecPercent: numVal("m2d-az-ec"),
+          layers: optNum("m2d-az-layers"),
+          compact: val("m2d-az-compact") === "true",
+        });
+        break;
+      default:
+        renderPNGPreviewFromSVG("m2d", generate2D());
+        return;
+    }
+    if (png) renderPNGPreview("m2d", png);
+  } catch (err) {
+    $("m2d-output-png").innerHTML = `<div class="error">${(err as Error).message}</div>`;
+  }
+}
+
 function setup2D() {
-  const render = () => renderSafe($("m2d-output"), generate2D);
+  const render = () => {
+    renderSafe($("m2d-output"), generate2D);
+    if (previewMode.m2d === "png") render2DPNGPreview();
+  };
+
+  $("m2d-output-png").addEventListener("render-png", render2DPNGPreview);
 
   $("m2d-format").addEventListener("change", () => {
     const format = val("m2d-format");
@@ -686,6 +935,51 @@ function setup2D() {
   );
 
   setupCopyDownload("m2d", generate2D);
+
+  $("m2d-download-png").addEventListener("click", () => {
+    try {
+      const format = val("m2d-format");
+      const data = val("m2d-data");
+      const pngOpts = {
+        moduleSize: Math.max(2, Math.round(numVal("m2d-size") / 30)),
+        margin: numVal("m2d-margin"),
+        color: val("m2d-color"),
+        background: val("m2d-bg"),
+      };
+
+      let png: Uint8Array | null = null;
+      switch (format) {
+        case "datamatrix":
+          png = datamatrixPNG(data, pngOpts);
+          break;
+        case "gs1datamatrix":
+          png = gs1datamatrixPNG(data, pngOpts);
+          break;
+        case "pdf417":
+          png = pdf417PNG(data, {
+            ...pngOpts,
+            ecLevel: numVal("m2d-pdf-ec"),
+            columns: optNum("m2d-pdf-cols"),
+            compact: val("m2d-pdf-compact") === "true",
+          });
+          break;
+        case "aztec":
+          png = aztecPNG(data, {
+            ...pngOpts,
+            ecPercent: numVal("m2d-az-ec"),
+            layers: optNum("m2d-az-layers"),
+            compact: val("m2d-az-compact") === "true",
+          });
+          break;
+        default:
+          // Fallback for formats without direct PNG support
+          svgToPNG(generate2D()).then((p) => downloadPNG(p, `2d-${format}`));
+          return;
+      }
+      if (png) downloadPNG(png, `2d-${format}`);
+    } catch {}
+  });
+
   render();
 }
 
@@ -827,12 +1121,19 @@ function setupHelpers() {
       if (svg) downloadSVG(svg, btn.dataset.helperDl!);
     });
   });
+  document.querySelectorAll<HTMLButtonElement>("[data-helper-png]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const svg = helperSVGs.get(btn.dataset.helperPng!);
+      if (svg) svgToPNG(svg).then((png) => downloadPNG(png, btn.dataset.helperPng!));
+    });
+  });
 }
 
 // ── Init ──
 
 export function setupApp() {
   setupTabs();
+  setupPreviewToggles();
   setupBarcode();
   setupQR();
   setup2D();

@@ -372,9 +372,37 @@ header p {
   word-break: break-word;
 }
 
+.preview-toggle {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  width: fit-content;
+}
+
+.toggle-btn {
+  padding: 0.25rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn {
