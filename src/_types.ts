@@ -32,7 +32,7 @@ export type BarcodeType =
   | "gs1-databar-limited"
   | "gs1-databar-expanded";
 
-export interface BarcodeOptions extends BarcodeSVGOptions {
+export interface BarcodeEncodingOptions {
   type?: BarcodeType;
   msiCheckDigit?: "mod10" | "mod11" | "mod1010" | "mod1110" | "none";
   code39CheckDigit?: boolean;
@@ -40,6 +40,8 @@ export interface BarcodeOptions extends BarcodeSVGOptions {
   codabarStop?: string;
   code128Charset?: "auto" | "A" | "B" | "C";
 }
+
+export interface BarcodeOptions extends BarcodeEncodingOptions, BarcodeSVGOptions {}
 
 export type EncodeType = BarcodeType | "qr" | "datamatrix" | "pdf417" | "aztec";
 

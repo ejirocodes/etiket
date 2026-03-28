@@ -39,5 +39,8 @@ export function parseHexColor(hex: string): [number, number, number] {
     throw new Error(`Invalid hex color: ${hex}`);
   }
   const n = Number.parseInt(h, 16);
+  if (Number.isNaN(n)) {
+    throw new Error(`Invalid hex color: ${hex}`);
+  }
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 }

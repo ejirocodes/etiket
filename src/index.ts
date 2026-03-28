@@ -32,6 +32,7 @@ export {
 // --- Types ---
 export type {
   BarcodeType,
+  BarcodeEncodingOptions,
   BarcodeOptions,
   EncodeType,
   EncodeOptions,

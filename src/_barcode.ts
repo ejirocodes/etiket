@@ -24,12 +24,12 @@ import { encodePOSTNET, encodePLANET } from "./encoders/postnet";
 import { encodePlessey } from "./encoders/plessey";
 import { renderBarcodeSVG } from "./renderers/svg/barcode";
 import { svgToDataURI, svgToBase64 } from "./renderers/data-uri";
-import type { BarcodeOptions } from "./_types";
+import type { BarcodeEncodingOptions, BarcodeOptions } from "./_types";
 
 /**
  * Encode barcode text to bar width pattern
  */
-export function encodeBars(text: string, options: BarcodeOptions = {}): number[] {
+export function encodeBars(text: string, options: BarcodeEncodingOptions = {}): number[] {
   const {
     type = "code128",
     msiCheckDigit,

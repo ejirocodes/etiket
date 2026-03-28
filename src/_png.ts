@@ -7,9 +7,8 @@ import { encodeQR } from "./encoders/qr/index";
 import { encodeDataMatrix, encodeGS1DataMatrix } from "./encoders/datamatrix/index";
 import { encodePDF417 } from "./encoders/pdf417/index";
 import { encodeAztec } from "./encoders/aztec/index";
-import { renderBarcodePNG } from "./renderers/png/rasterize";
-import { renderMatrixPNG } from "./renderers/png/rasterize";
-import type { BarcodeOptions } from "./_types";
+import { renderBarcodePNG, renderMatrixPNG } from "./renderers/png/rasterize";
+import type { BarcodeEncodingOptions } from "./_types";
 import type { QRCodeOptions } from "./encoders/qr/types";
 import type { BarcodePNGOptions, MatrixPNGOptions } from "./renderers/png/types";
 
@@ -28,7 +27,10 @@ function toPNGDataURI(data: Uint8Array): string {
 /**
  * Generate a barcode as PNG
  */
-export function barcodePNG(text: string, options?: BarcodeOptions & BarcodePNGOptions): Uint8Array {
+export function barcodePNG(
+  text: string,
+  options?: BarcodeEncodingOptions & BarcodePNGOptions,
+): Uint8Array {
   const bars = encodeBars(text, options);
   return renderBarcodePNG(bars, options);
 }
@@ -38,7 +40,7 @@ export function barcodePNG(text: string, options?: BarcodeOptions & BarcodePNGOp
  */
 export function barcodePNGDataURI(
   text: string,
-  options?: BarcodeOptions & BarcodePNGOptions,
+  options?: BarcodeEncodingOptions & BarcodePNGOptions,
 ): string {
   return toPNGDataURI(barcodePNG(text, options));
 }
